@@ -9,9 +9,10 @@ const PDF = {
         element.style.color = '#1e293b';
         element.style.fontFamily = 'Arial, sans-serif';
 
+        const logoUrl = (typeof LOGO_BASE64 !== 'undefined' && LOGO_BASE64 !== "") ? LOGO_BASE64 : "";
         const logoHtml = `
             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #721c24; padding-bottom: 20px; margin-bottom: 30px; align-items: center;">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAADqYAAAemCAYAAADHWeH/AAAACXBIWXMAAC4jAAAuIwF4pT92AAAgAElEQVR4nOzdwVHbyZ/G4debAMoAZWDOfYGqDsDOYCaBLpOBFQJVJKAQNgGq/L9wXU0Eq8mAicB7YHYY24CxLen7E7/nuVCA1P1J4K1+8/nz5wDAsettXNzcXn+q7gAAAAAAAAAAAAAAAIDX7L+qAwDgV/U2Fkn+u7oDAAAAAAAAAAAAAAAAXjvDVABeg1WSTXUEAAAAAAAAAAAAAAAAvHaGqQAcrd7GKsnp379u60oAAAAAAAAAAAAAAABgHgxTAThKvY2zJB+rOwAAAAAAAAAAAAAAAGBODFMBOFZXX/3+qSICAAAAAAAAAAAAAAAA5sQwFYCj09u4THJe3QEAAAAAAAAAAAAAAABzY5gKwFHpbSyTrB75191hSwAAAAAAAAAAAAAAAGB+DFMBODbrJCdf//Hm9npz+BQAAAAAAAAAAAAAAACYF8NUAI5Gb+N9kvPqDgAAAAAAAAAAAAAAAJgrw1QAjkJvY5H711If88cBUwAAAAAAAAAAAAAAAGC2DFMBOBZXSU6e+N/dIUMAAAAAAAAAAAAAAABgrgxTAZi83sZFkt+qOwAAAAAAAAAAAAAAAGDuDFMBOLTe7rIA" style="width: 80px; height: auto;">
+                ${logoUrl ? `<img src="${logoUrl}" style="width: 80px; height: auto;">` : '<div style="width: 80px; height: 80px; background: #721c24; border-radius: 10px; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px;">CCMVR</div>'}
                 <div style="font-size: 24px; font-weight: bold; color: #721c24; flex: 1; text-align: center;">Dossier de Subvention CCMVR</div>
                 <div style="text-align: right; font-size: 14px; width: 80px;">Année : ${data.application.year}</div>
             </div>
@@ -62,11 +63,11 @@ const PDF = {
         element.innerHTML = logoHtml + identityHtml + financialHtml + declarationsHtml;
 
         const opt = {
-            margin:       [10, 10, 10, 10],
-            filename:     `Dossier_Subvention_${data.association?.name || 'Asso'}_${data.application.year}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            margin: [10, 10, 10, 10],
+            filename: `Dossier_Subvention_${data.association?.name || 'Asso'}_${data.application.year}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         return html2pdf().set(opt).from(element).save();

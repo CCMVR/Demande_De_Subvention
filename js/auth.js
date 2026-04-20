@@ -89,20 +89,29 @@ const AUTH = {
 
     async loadProfile() {
         try {
+            // Reset UI state before loading new profile
+            UI.resetRoleUI();
+
             const profile = await DB.getProfile(STATE.user.id);
             STATE.profile = profile;
             
-            if (profile.association_id) {
+            if (profile && profile.association_id) {
                 STATE.association = await DB.getAssociation(profile.association_id);
                 document.getElementById('org-name').textContent = STATE.association.name;
+                document.getElementById('user-role').textContent = "Association";
                 await FORM.init();
                 UI.switchView('dashboard');
-            } else if (STATE.user.email.toLowerCase() === CONFIG.AO_EMAIL.toLowerCase()) {
+            } else if (STATE.user.email && STATE.user.email.toLowerCase() === CONFIG.AO_EMAIL.toLowerCase()) {
                 document.getElementById('org-name').textContent = "Administration CCMVR";
                 document.getElementById('user-role').textContent = "Admin";
                 document.getElementById('admin-menu').classList.remove('hidden');
                 await ADMIN.init();
                 UI.switchView('admin-dashboard');
+            } else {
+                // Default fallback for new users without associations yet
+                document.getElementById('org-name').textContent = "Nouvel Utilisateur";
+                document.getElementById('user-role').textContent = "En attente";
+                UI.switchView('dashboard');
             }
         } catch (err) {
             console.error("Error loading profile", err);

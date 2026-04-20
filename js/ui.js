@@ -8,7 +8,17 @@ const UI = {
             });
         });
 
-        // Initial view determination is handled via AUTH.loadProfile
+        // Apply logo from data file
+        UI.applyLogo();
+    },
+
+    applyLogo() {
+        if (typeof LOGO_BASE64 !== 'undefined' && LOGO_BASE64 !== "") {
+            const containers = document.querySelectorAll('.logo-container');
+            containers.forEach(container => {
+                container.style.backgroundImage = `url('${LOGO_BASE64}')`;
+            });
+        }
     },
 
     notify(message, type = 'info') {
@@ -43,6 +53,12 @@ const UI = {
     showApp() {
         document.getElementById('auth-container').classList.add('hidden');
         document.getElementById('app-content').classList.remove('hidden');
+    },
+
+    resetRoleUI() {
+        document.getElementById('admin-menu').classList.add('hidden');
+        document.getElementById('user-role').textContent = "Association";
+        document.getElementById('org-name').textContent = "Chargement...";
     },
 
     toggleAuthMode(mode) {
