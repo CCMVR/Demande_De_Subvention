@@ -1,5 +1,5 @@
 // Main Entry Point
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Check if Supabase loaded correctly
     if (typeof supabase === 'undefined') {
         console.error("Supabase CDN failed to load.");

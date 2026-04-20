@@ -11,7 +11,7 @@ const PDF = {
 
         const logoHtml = `
             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #721c24; padding-bottom: 20px; margin-bottom: 30px; align-items: center;">
-                <img src="logo.png" style="width: 80px; height: auto;">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAADqYAAAemCAYAAADHWeH/AAAACXBIWXMAAC4jAAAuIwF4pT92AAAgAElEQVR4nOzdwVHbyZ/G4debAMoAZWDOfYGqDsDOYCaBLpOBFQJVJKAQNgGq/L9wXU0Eq8mAicB7YHYY24CxLen7E7/nuVCA1P1J4K1+8/nz5wDAsettXNzcXn+q7gAAAAAAAAAAAAAAAIDX7L+qAwDgV/U2Fkn+u7oDAAAAAAAAAAAAAAAAXjvDVABeg1WSTXUEAAAAAAAAAAAAAAAAvHaGqQAcrd7GKsnp379u60oAAAAAAAAAAAAAAABgHgxTAThKvY2zJB+rOwAAAAAAAAAAAAAAAGBODFMBOFZXX/3+qSICAAAAAAAAAAAAAAAA5sQwFYCj09u4THJe3QEAAAAAAAAAAAAAAABzY5gKwFHpbSyTrB75191hSwAAAAAAAAAAAAAAAGB+DFMBODbrJCdf//Hm9npz+BQAAAAAAAAAAAAAAACYF8NUAI5Gb+N9kvPqDgAAAAAAAAAAAAAAAJgrw1QAjkJvY5H711If88cBUwAAAAAAAAAAAAAAAGC2DFMBOBZXSU6e+N/dIUMAAAAAAAAAAAAAAABgrgxTAZi83sZFkt+qOwAAAAAAAAAAAAAAAGDuDFMBOLTe7rIA" style="width: 80px; height: auto;">
                 <div style="font-size: 24px; font-weight: bold; color: #721c24; flex: 1; text-align: center;">Dossier de Subvention CCMVR</div>
                 <div style="text-align: right; font-size: 14px; width: 80px;">Année : ${data.application.year}</div>
             </div>
