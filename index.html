@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Subvention - CCMVR</title>
+    <meta name="description" content="Portail des demandes de subvention annuelle de fonctionnement pour la Communauté de Communes des Marches du Velay Rochebaron.">
+    
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Auth View -->
+        <main id="auth-container" class="view hidden">
+            <div class="glass-card auth-card">
+                <div class="auth-header">
+                    <img src="https://via.placeholder.com/150x50?text=CCMVR" alt="Logo CCMVR" id="logo">
+                    <h1>Portail Subventions</h1>
+                </div>
+                
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="email">Adresse mail</label>
+                        <input type="email" id="email" required placeholder="nom@association.fr">
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Mot de passe</label>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Se connecter</button>
+                    <p class="auth-footer">
+                        Nouvelle association ? <a href="#" id="show-register">Créer un compte</a>
+                    </p>
+                </form>
+
+                <form id="register-form" class="hidden">
+                    <div class="input-group">
+                        <label for="reg-email">Adresse mail (pré-validée)</label>
+                        <input type="email" id="reg-email" required placeholder="nom@association.fr">
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-password">Définir un mot de passe</label>
+                        <input type="password" id="reg-password" required placeholder="••••••••">
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-confirm-password">Confirmer le mot de passe</label>
+                        <input type="password" id="reg-confirm-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary">S'inscrire</button>
+                    <p class="auth-footer">
+                        Déjà un compte ? <a href="#" id="show-login">Se connecter</a>
+                    </p>
+                </form>
+            </div>
+        </main>
+
+        <!-- App View -->
+        <div id="app-content" class="view hidden">
+            <header class="main-header">
+                <div class="header-left">
+                    <span class="badge" id="user-role">Association</span>
+                    <h2 id="org-name">Chargement...</h2>
+                </div>
+                <div class="header-right">
+                    <button id="logout-btn" class="btn btn-icon"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </header>
+
+            <div class="main-layout">
+                <aside class="sidebar">
+                    <nav id="main-nav">
+                        <button class="nav-item active" data-view="dashboard">
+                            <i class="fas fa-home"></i> <span>Tableau de bord</span>
+                        </button>
+                        <button class="nav-item" data-view="application" id="nav-new-app">
+                            <i class="fas fa-file-invoice-dollar"></i> <span>Nouvelle demande</span>
+                        </button>
+                        <button class="nav-item" data-view="history">
+                            <i class="fas fa-history"></i> <span>Historique</span>
+                        </button>
+                        <!-- Admin Only -->
+                        <div id="admin-menu" class="hidden">
+                            <hr>
+                            <button class="nav-item" data-view="admin-dashboard">
+                                <i class="fas fa-users-cog"></i> <span>Gestion Admin</span>
+                            </button>
+                        </div>
+                    </nav>
+                </aside>
+
+                <main id="content-area">
+                    <!-- Dynamic fragments will be loaded here -->
+                </main>
+            </div>
+        </div>
+
+        <!-- Notification System -->
+        <div id="notification-container"></div>
+        
+        <!-- Loading Spinner -->
+        <div id="global-loader" class="hidden">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- Scripts Injection -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/form.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
