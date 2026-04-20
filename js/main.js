@@ -7,8 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize Modules
-    AUTH.init();
-    UI.init();
+    console.log("DOM Ready. Initializing App...");
+    try {
+        console.log("Auth init...");
+        await AUTH.init();
+        console.log("UI init...");
+        UI.init();
+        console.log("CCMVR Application Ready.");
+    } catch (err) {
+        console.error("APP INITIALIZATION FAILED:", err);
+    }
 });
 
 // Polyfill dynamic content for specific Excel data mapping

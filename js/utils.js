@@ -45,7 +45,7 @@ const UTILS = {
         const t = thresholds[ratioKey];
         if (!t) return 'neutral';
 
-        val = parseFloat(value);
+        const val = parseFloat(value);
         if (val < t.min) return 'danger';
         if (val > t.max) return 'warning';
         return 'safe';

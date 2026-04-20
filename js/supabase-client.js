@@ -1,6 +1,7 @@
-// Initialize Supabase Client
-const { createClient } = supabase;
-const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+// Initialize Supabase Client with Safety check
+const { createClient } = window.supabase || {};
+const sb = createClient ? createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY) : null;
+if (!sb) console.error("CRITICAL: Supabase client could not be initialized. Check CDN.");
 
 /**
  * Utility function to handle Supabase responses
