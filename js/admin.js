@@ -2,10 +2,13 @@
  * Administrator Dashboard Logic
  */
 const ADMIN = {
+    initialized: false,
     async init() {
+        if (this.initialized || !STATE.user) return;
         if (STATE.user.email.toLowerCase() !== CONFIG.AO_EMAIL.toLowerCase()) return;
         
-        // Setup listeners for admin actions
+        this.initialized = true;
+        // Setup listeners for admin actions (Delegation)
         document.body.addEventListener('click', async (e) => {
             if (e.target.id === 'send-invite') {
                 await ADMIN.inviteAssociation();

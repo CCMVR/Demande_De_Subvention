@@ -101,6 +101,7 @@ const AUTH = {
                 document.getElementById('org-name').textContent = "Administration CCMVR";
                 document.getElementById('user-role').textContent = "Admin";
                 document.getElementById('admin-menu').classList.remove('hidden');
+                await ADMIN.init();
                 UI.switchView('admin-dashboard');
             }
         } catch (err) {
