@@ -4,31 +4,48 @@
 const FORM = {
     currentStep: 1,
     data: {
-        application: { year: 2026, status: 'draft', selected_axe: null },
+        application: { year: 2026, status: 'draft', selected_axe: null, total_requested: 0 },
         association: {},
         financials: [],
         metrics: {}
     },
 
+    // Dynamic config fetched or mapped
+    config: {
+        axes: [],
+        metrics: []
+    },
+
     async init() {
-        // Load existing draft if any
-        if (STATE.association) {
-            const apps = await DB.getApplicationsByAssoc(STATE.association.id);
-            const draft = apps.find(a => a.status === 'draft' && a.year === 2026);
-            if (draft) {
-                const full = await DB.getFullApplication(draft.id);
-                FORM.data = full;
+        UI.toggleLoader(true);
+        try {
+            // Load Dynamic Config from DB
+            this.config.axes = await DB.getFormAxes();
+            
+            // Load existing draft if any
+            if (STATE.association) {
+                const apps = await DB.getApplicationsByAssoc(STATE.association.id);
+                const draft = apps.find(a => a.status === 'draft' && a.year === 2026);
+                if (draft) {
+                    const full = await DB.getFullApplication(draft.id);
+                    this.data = full;
+                } else {
+                    this.initDefaultFinancials();
+                }
             } else {
-                // Initialize default financials from EXCEL_MAPPING
-                FORM.initDefaultFinancials();
+                this.initDefaultFinancials();
             }
+        } catch (err) {
+            console.error("Form init error", err);
+            this.initDefaultFinancials(); // Fallback
+        } finally {
+            UI.toggleLoader(false);
         }
     },
 
     initDefaultFinancials() {
-        // Prepare template lines for charges and revenues
         const accounts = EXCEL_MAPPING.financial_accounts;
-        FORM.data.financials = accounts.map(acc => ({
+        this.data.financials = accounts.map(acc => ({
             account_code: acc.code,
             label: acc.label,
             type: acc.code.startsWith('6') ? 'expense' : 'revenue',
@@ -37,26 +54,26 @@ const FORM = {
     },
 
     renderStep(step) {
-        FORM.currentStep = step;
+        this.currentStep = step;
         const container = document.getElementById('step-content');
         
-        // Update header badges
         document.querySelectorAll('.step-badge').forEach((b, idx) => {
             b.classList.toggle('active', idx + 1 === step);
             b.classList.toggle('completed', idx + 1 < step);
         });
 
         switch(step) {
-            case 1: container.innerHTML = FORM.tplNotice(); break;
-            case 2: container.innerHTML = FORM.tplIdentity(); break;
-            case 3: container.innerHTML = FORM.tplAxes(); break;
-            case 4: container.innerHTML = FORM.tplFinancials('expense'); break;
-            case 5: container.innerHTML = FORM.tplFinancials('revenue'); break;
-            case 6: container.innerHTML = FORM.tplBilan(); break;
-            case 7: container.innerHTML = FORM.tplDeclarations(); break;
+            case 1: container.innerHTML = this.tplNotice(); break;
+            case 2: container.innerHTML = this.tplIdentity(); break;
+            case 3: container.innerHTML = this.tplAxes(); break;
+            case 4: container.innerHTML = this.tplDetails(); break;
+            case 5: container.innerHTML = this.tplFinancials('expense'); break;
+            case 6: container.innerHTML = this.tplFinancials('revenue'); break;
+            case 7: container.innerHTML = this.tplBilan(); break;
+            case 8: container.innerHTML = this.tplDeclarations(); break;
         }
 
-        FORM.bindEvents();
+        this.bindEvents();
     },
 
     tplNotice() {
@@ -65,8 +82,7 @@ const FORM = {
                 <h3>Notice d'utilisation</h3>
                 <div class="info-box">
                     <p>Bienvenue dans le portail de demande de subvention CCMVR.</p>
-                    <p>Ce formulaire remplace le fichier Excel précédent. Les cases grises comportent des calculs automatiques.</p>
-                    <p>Une fois validé, vous recevrez une confirmation par mail.</p>
+                    <p>Les cases grisées comportent des calculs automatiques. Les cases vertes dans votre ancien Excel sont ici des champs de saisie blancs.</p>
                 </div>
                 <div class="form-actions">
                     <button class="btn btn-primary" onclick="FORM.renderStep(2)">Démarrer</button>
@@ -93,9 +109,10 @@ const FORM = {
                         <label>Mail de contact</label>
                         <input type="email" id="f-email" value="${assoc.contact_email || ''}">
                     </div>
-                    <div class="input-group">
+                    <div class="input-group highlight">
                         <label>Subvention demandée (€)</label>
-                        <input type="number" id="f-requested" value="${FORM.data.application.total_requested || 0}">
+                        <input type="number" id="f-requested" value="${this.data.application.total_requested || 0}" readonly class="readonly-input">
+                        <small>Ce montant est synchronisé avec la ligne 74 de l'étape 6.</small>
                     </div>
                 </div>
                 <div class="form-actions">
@@ -107,17 +124,18 @@ const FORM = {
     },
 
     tplAxes() {
+        const axes = this.config.axes.length > 0 ? this.config.axes : EXCEL_MAPPING.axes;
         return `
             <div class="form-step">
                 <h3>Axe de la demande</h3>
-                <p class="help-text">SVP Veuillez cocher une seule case représentant l'axe principal de votre projet.</p>
+                <p class="help-text">Veuillez cocher une seule case. Pour un deuxième axe, créez une autre demande.</p>
                 <div class="axes-selection">
-                    ${EXCEL_MAPPING.axes.map(axe => `
+                    ${axes.map(axe => `
                         <label class="axe-option">
-                            <input type="radio" name="axe" value="${axe.code}" ${FORM.data.application.selected_axe === axe.code ? 'checked' : ''}>
+                            <input type="radio" name="axe" value="${axe.code}" ${this.data.application.selected_axe === axe.code ? 'checked' : ''}>
                             <div class="axe-info">
                                 <strong>${axe.principal}</strong>
-                                <span>${axe.secondary}</span>
+                                <span>${axe.secondary || ''}</span>
                             </div>
                         </label>
                     `).join('')}
@@ -130,9 +148,36 @@ const FORM = {
         `;
     },
 
+    async tplDetails() {
+        const axeCode = this.data.application.selected_axe;
+        if (!axeCode) return `<div class="error-state">Veuillez sélectionner un axe à l'étape précédente.</div>`;
+        
+        UI.toggleLoader(true);
+        const metrics = await DB.getAxeMetrics(axeCode);
+        UI.toggleLoader(false);
+
+        return `
+            <div class="form-step">
+                <h3>Détails de l'activité - Axe ${axeCode}</h3>
+                <div class="grid-2">
+                    ${metrics.map(m => `
+                        <div class="input-group">
+                            <label>${m.label}</label>
+                            <input type="${m.input_type}" class="metric-input" data-key="${m.metric_key}" value="${this.data.metrics[m.metric_key] || ''}">
+                        </div>
+                    `).join('') || '<p>Aucune question spécifique pour cet axe.</p>'}
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="FORM.renderStep(3)">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(5)">Suivant</button>
+                </div>
+            </div>
+        `;
+    },
+
     tplFinancials(type) {
-        const title = type === 'expense' ? 'Charges Prévisionnelles' : 'Recettes Prévisionnelles';
-        const rows = FORM.data.financials.filter(f => f.type === type);
+        const title = type === 'expense' ? 'Section 1 : CHARGES' : 'Section 2 : RECETTES';
+        const rows = this.data.financials.filter(f => f.type === type);
         
         return `
             <div class="form-step wide">
@@ -157,59 +202,217 @@ const FORM = {
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="bp_year" value="${row.bp_year}"></td>
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1}"></td>
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2}"></td>
-                                    <td class="readonly-cell">${FORM.calcEvolution(row.bp_year, row.cr_n1)}%</td>
+                                    <td class="readonly-cell">${UTILS.calculateEvolution(row.bp_year, row.cr_n1)}%</td>
                                 </tr>
                             `).join('')}
+                            <tr class="total-row">
+                                <td colspan="2">TOTAL ${title}</td>
+                                <td id="total-bp">0</td>
+                                <td id="total-n1">0</td>
+                                <td id="total-n2">0</td>
+                                <td></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
                 <div class="form-actions">
-                    <button class="btn" onclick="FORM.renderStep(${type === 'expense' ? 3 : 4})">Précédent</button>
-                    <button class="btn btn-primary" onclick="FORM.saveAndNext(${type === 'expense' ? 5 : 6})">Suivant</button>
+                    <button class="btn" onclick="FORM.renderStep(${type === 'expense' ? 4 : 5})">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(${type === 'expense' ? 6 : 7})">Suivant</button>
                 </div>
             </div>
         `;
     },
 
-    calcEvolution(now, before) {
-        if (!before || before === 0) return 0;
-        return (((now - before) / before) * 100).toFixed(1);
+    tplBilan() {
+        return `
+            <div class="form-step wide">
+                <h3>Bilan Simplifié</h3>
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>ACTIF (Ce que l'on possède)</h4>
+                        <div class="input-group">
+                            <label>Immobilisations (Bâtiments, matériel...)</label>
+                            <input type="number" class="bilan-input" data-key="actif_immo" value="${this.data.application.actif_immo || 0}">
+                        </div>
+                        <div class="input-group">
+                            <label>Disponibilités (Argent en banque/caisse)</label>
+                            <input type="number" class="bilan-input" data-key="actif_dispo" value="${this.data.application.actif_dispo || 0}">
+                        </div>
+                        <div class="input-group">
+                            <label>Créances clients et autres</label>
+                            <input type="number" class="bilan-input" data-key="actif_creances" value="${this.data.application.actif_creances || 0}">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h4>PASSIF (D'où vient l'argent)</h4>
+                        <div class="input-group">
+                            <label>Fonds propres (Fonds asso, réserves, report à nouveau)</label>
+                            <input type="number" class="bilan-input" data-key="passif_fonds" value="${this.data.application.passif_fonds || 0}">
+                        </div>
+                        <div class="input-group">
+                            <label>Résultat de l'exercice</label>
+                            <input type="number" class="bilan-input" data-key="passif_resultat" value="${this.data.application.passif_resultat || 0}">
+                        </div>
+                        <div class="input-group">
+                            <label>Fonds dédiés (Subventions fléchées non utilisées)</label>
+                            <input type="number" class="bilan-input" data-key="passif_dedies" value="${this.data.application.passif_dedies || 0}">
+                        </div>
+                        <div class="input-group">
+                            <label>Dettes (Fournisseurs, fiscales, sociales)</label>
+                            <input type="number" class="bilan-input" data-key="passif_dettes" value="${this.data.application.passif_dettes || 0}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="FORM.renderStep(6)">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(8)">Suivant</button>
+                </div>
+            </div>
+        `;
+    },
+
+    tplDeclarations() {
+        return `
+            <div class="form-step">
+                <h3>Déclarations et Signature</h3>
+                <div class="info-box">
+                    <p>En cochant ces cases, vous certifiez sur l'honneur l'exactitude des informations fournies.</p>
+                </div>
+                <div class="declarations-list">
+                    <label class="check-item luxe">
+                        <input type="checkbox" id="decl-1" required>
+                        <div class="check-text">
+                            <strong>Obligations administratives</strong>
+                            L'association est à jour de ses obligations administratives, comptables, sociales et fiscales.
+                        </div>
+                    </label>
+                    <label class="check-item luxe">
+                        <input type="checkbox" id="decl-2" required>
+                        <div class="check-text">
+                            <strong>Contrat d'engagement républicain</strong>
+                            L'association souscrit au contrat d'engagement républicain (loi n° 2000-321).
+                        </div>
+                    </label>
+                    <label class="check-item luxe">
+                        <input type="checkbox" id="decl-3" required>
+                        <div class="check-text">
+                            <strong>Charte des engagements réciproques</strong>
+                            L'association respecte les principes de la Charte des engagements réciproques du 14 février 2014.
+                        </div>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="FORM.renderStep(7)">Précédent</button>
+                    <button class="btn btn-primary" id="final-submit" onclick="FORM.submitApplication()">Soumettre la demande</button>
+                </div>
+            </div>
+        `;
     },
 
     bindEvents() {
-        // Handle input changes for auto-calc
+        // Sync financial inputs to local data and trigger totals
         document.querySelectorAll('.calc-input').forEach(input => {
-            input.addEventListener('change', (e) => {
+            input.addEventListener('input', (e) => {
                 const code = e.target.dataset.code;
                 const field = e.target.dataset.field;
                 const val = parseFloat(e.target.value) || 0;
                 
-                const rec = FORM.data.financials.find(f => f.account_code === code);
-                if (rec) rec[field] = val;
-                
-                // Refresh evolution cells in the row
-                const row = e.target.closest('tr');
-                const bp = parseFloat(row.querySelector('[data-field="bp_year"]').value) || 0;
-                const n1 = parseFloat(row.querySelector('[data-field="cr_n1"]').value) || 0;
-                row.querySelector('.readonly-cell').textContent = FORM.calcEvolution(bp, n1) + '%';
+                const rec = this.data.financials.find(f => f.account_code === code);
+                if (rec) {
+                    rec[field] = val;
+                    // Sync requested amount if it's the CCMVR subvention line (code 74)
+                    if (code === '74' && field === 'bp_year') {
+                        this.data.application.total_requested = val;
+                    }
+                }
+                this.updateStepTotals();
             });
         });
+
+        // Sync metric inputs
+        document.querySelectorAll('.metric-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                this.data.metrics[e.target.dataset.key] = e.target.value;
+            });
+        });
+
+        // Initialize totals on load
+        if (this.currentStep === 5 || this.currentStep === 6) {
+            this.updateStepTotals();
+        }
+    },
+
+    updateStepTotals() {
+        const type = this.currentStep === 5 ? 'expense' : 'revenue';
+        const rows = this.data.financials.filter(f => f.type === type);
+        
+        const bpTotal = rows.reduce((sum, r) => sum + (parseFloat(r.bp_year) || 0), 0);
+        const n1Total = rows.reduce((sum, r) => sum + (parseFloat(r.cr_n1) || 0), 0);
+        const n2Total = rows.reduce((sum, r) => sum + (parseFloat(r.cr_n2) || 0), 0);
+
+        document.getElementById('total-bp').textContent = bpTotal.toLocaleString() + ' €';
+        document.getElementById('total-n1').textContent = n1Total.toLocaleString() + ' €';
+        document.getElementById('total-n2').textContent = n2Total.toLocaleString() + ' €';
     },
 
     async saveAndNext(nextStep) {
+        if (!STATE.association) return this.renderStep(nextStep);
+
         UI.toggleLoader(true);
         try {
-            // In a real app, here we would call SB to update tables
-            // For now, we simulate saving to local STATE and move on
-            UI.notify("Données sauvegardées temporairement.", "success");
-            FORM.renderStep(nextStep);
+            // 1. Save or Update Application
+            const app = {
+                ...this.data.application,
+                association_id: STATE.association.id
+            };
+            
+            let res;
+            if (this.data.application.id) {
+                res = await sb.from('grant_applications').update(app).eq('id', this.data.application.id).select().single();
+            } else {
+                res = await sb.from('grant_applications').insert([app]).select().single();
+                this.data.application.id = res.data.id;
+            }
+
+            if (res.error) throw res.error;
+
+            // 2. Save Financials (Batch)
+            if (this.currentStep === 5 || this.currentStep === 6) {
+                const finData = this.data.financials.map(f => ({
+                    ...f,
+                    application_id: this.data.application.id
+                }));
+                const { error: finErr } = await sb.from('financial_records').upsert(finData, { onConflict: 'application_id, account_code' });
+                if (finErr) throw finErr;
+            }
+
+            UI.notify("Progrès enregistré.", "success");
+            this.renderStep(nextStep);
         } catch (err) {
-            UI.notify(err.message, "error");
+            UI.notify("Erreur lors de la sauvegarde : " + err.message, "error");
+            this.renderStep(nextStep); // Continue anyway for testing
         } finally {
             UI.toggleLoader(false);
         }
     },
 
-    tplBilan() { return `<h3>Bilan Comptable</h3><p>En cours...</p><button class="btn" onclick="FORM.renderStep(5)">Précédent</button><button class="btn btn-primary" onclick="FORM.renderStep(7)">Suivant</button>`; },
-    tplDeclarations() { return `<h3>Déclarations finales</h3><p>Engagement républicain...</p><button class="btn" onclick="FORM.renderStep(6)">Précédent</button><button class="btn btn-primary" onclick="UI.switchView('dashboard')">Soumettre</button>`; }
+    async submitApplication() {
+        if (!confirm("Voulez-vous vraiment soumettre votre demande ? Elle ne sera plus modifiable.")) return;
+
+        UI.toggleLoader(true);
+        try {
+            const { error } = await sb.from('grant_applications')
+                .update({ status: 'submitted' })
+                .eq('id', this.data.application.id);
+            
+            if (error) throw error;
+            
+            UI.notify("Demande soumise avec succès !", "success");
+            UI.switchView('dashboard');
+        } catch (err) {
+            UI.notify(err.message, "error");
+        } finally {
+            UI.toggleLoader(false);
+        }
+    }
 };

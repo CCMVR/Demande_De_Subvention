@@ -1,7 +1,7 @@
 // Main Entry Point
 document.addEventListener('DOMContentLoaded', () => {
     // Check if Supabase loaded correctly
-    if (!supabase) {
+    if (typeof supabase === 'undefined') {
         console.error("Supabase CDN failed to load.");
         return;
     }
@@ -21,13 +21,34 @@ const EXCEL_MAPPING = {
         { code: '6a', principal: 'Solidarités', secondary: 'Prévention et accès au droit (PAEJ, PIJ, CLAS, Habitat, accès aux droits, insertion.)' }
     ],
     financial_accounts: [
+        // CHARGES (6x)
         { code: '60212', label: "Fournitures d'atelier ou d'activité" },
         { code: '60214', label: "Alimentation, boissons" },
         { code: '60635', label: "Petit équipement" },
-        { code: '611', label: "Prestation extérieure pour activité" },
-        { code: '6135', label: "Loyer et charges locatives" },
-        { code: '6156', label: "Maintenance informatique" },
-        { code: '622', label: "Honoraires (hors activité)" }
-        // ... more added during form implementation
+        { code: '611',   label: "Prestation extérieure pour activité" },
+        { code: '6135',  label: "Loyer et charges locatives" },
+        { code: '6135b', label: "Location de matériel" },
+        { code: '6156',  label: "Maintenance informatique" },
+        { code: '621',   label: "Personnel extérieur à la structure" },
+        { code: '622',   label: "Honoraires (hors activité)" },
+        { code: '624',   label: "Transport de biens et personnes" },
+        { code: '63',    label: "Impôts et taxes" },
+        { code: '64',    label: "Charges de personnel" },
+        { code: '65',    label: "Autres charges de gestion courante" },
+        { code: '66',    label: "Charges financières" },
+        { code: '67',    label: "Charges exceptionnelles" },
+        { code: '68',    label: "Dot. aux amortis et provis." },
+        
+        // RECETTES (7x)
+        { code: '70',    label: "Participation des familles" },
+        { code: '70b',   label: "Prestation de service CAF" },
+        { code: '70c',   label: "Bonus CTG CAF" },
+        { code: '70d',   label: "Cotisations, Adhésions" },
+        { code: '74',    label: "Subvention Marches du Velay Rochebaron" },
+        { code: '74b',   label: "Subvention AJC (CCMVR)" },
+        { code: '76',    label: "Produits financiers" },
+        { code: '77',    label: "Produits exceptionnels" },
+        { code: '78',    label: "Reprise sur Amortis. et provisions" },
+        { code: '79',    label: "Transfert de charges" }
     ]
 };

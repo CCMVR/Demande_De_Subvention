@@ -84,6 +84,9 @@ const UI = {
                 case 'admin-dashboard':
                     html = await ADMIN.renderAdminDashboard();
                     break;
+                case 'admin-view-dossier':
+                    html = await ADMIN.renderDossierDetail(arguments[0]);
+                    break;
                 default:
                     html = '<h3>Vue en cours de développement</h3>';
             }
@@ -115,6 +118,9 @@ const UI = {
                             <i class="fas fa-circle"></i> Statut : ${lastApp.status.toUpperCase()}
                         </div>
                         <p>Dernière mise à jour : ${new Date(lastApp.created_at).toLocaleDateString()}</p>
+                        <button class="btn btn-secondary" id="download-pdf" style="margin-top:10px">
+                            <i class="fas fa-file-pdf"></i> Télécharger mon dossier (PDF)
+                        </button>
                     ` : `
                         <p>Aucune demande en cours pour l'année 2026.</p>
                         <button class="btn btn-primary" onclick="UI.switchView('application')">Démarrer une demande</button>
@@ -173,10 +179,18 @@ const UI = {
     },
 
     initViewInteractions(viewId) {
-        if (viewId === 'application') {
-            document.getElementById('next-step')?.addEventListener('click', () => {
-                UI.notify("Le formulaire complet est en cours d'intégration.", "info");
+        if (viewId === 'dashboard') {
+            document.getElementById('download-pdf')?.addEventListener('click', async () => {
+                if (STATE.lastApplication) {
+                    UI.notify("Génération du PDF...", "info");
+                    const fullData = await DB.getFullApplication(STATE.lastApplication.id);
+                    await PDF.generate(fullData);
+                }
             });
+        }
+        
+        if (viewId === 'application') {
+            FORM.renderStep(1);
         }
     }
 };

@@ -46,7 +46,19 @@ const DB = {
         );
     },
 
-    // Metrics & Financials
+    // Form Configuration (Dynamic)
+    async getFormAxes() {
+        return await handleResponse(
+            sb.from('form_axes').select('*').order('code')
+        );
+    },
+
+    async getAxeMetrics(axeCode) {
+        return await handleResponse(
+            sb.from('form_metrics_config').select('*').eq('axe_code', axeCode).order('created_at')
+        );
+    },
+
     async getFullApplication(appId) {
         const application = await handleResponse(
             sb.from('grant_applications').select('*').eq('id', appId).single()

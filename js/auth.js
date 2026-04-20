@@ -95,6 +95,7 @@ const AUTH = {
             if (profile.association_id) {
                 STATE.association = await DB.getAssociation(profile.association_id);
                 document.getElementById('org-name').textContent = STATE.association.name;
+                await FORM.init();
                 UI.switchView('dashboard');
             } else if (STATE.user.email.toLowerCase() === CONFIG.AO_EMAIL.toLowerCase()) {
                 document.getElementById('org-name').textContent = "Administration CCMVR";
