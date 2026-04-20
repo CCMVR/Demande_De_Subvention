@@ -95,10 +95,12 @@ const AUTH = {
             if (profile.association_id) {
                 STATE.association = await DB.getAssociation(profile.association_id);
                 document.getElementById('org-name').textContent = STATE.association.name;
-            } else if (STATE.user.email === CONFIG.AO_EMAIL) {
+                UI.switchView('dashboard');
+            } else if (STATE.user.email.toLowerCase() === CONFIG.AO_EMAIL.toLowerCase()) {
                 document.getElementById('org-name').textContent = "Administration CCMVR";
                 document.getElementById('user-role').textContent = "Admin";
                 document.getElementById('admin-menu').classList.remove('hidden');
+                UI.switchView('admin-dashboard');
             }
         } catch (err) {
             console.error("Error loading profile", err);

@@ -8,8 +8,7 @@ const UI = {
             });
         });
 
-        // Initial view
-        UI.switchView('dashboard');
+        // Initial view determination is handled via AUTH.loadProfile
     },
 
     notify(message, type = 'info') {
@@ -83,7 +82,7 @@ const UI = {
                     html = await UI.renderHistory();
                     break;
                 case 'admin-dashboard':
-                    html = await UI.renderAdminDashboard();
+                    html = await ADMIN.renderAdminDashboard();
                     break;
                 default:
                     html = '<h3>Vue en cours de développement</h3>';
@@ -159,6 +158,16 @@ const UI = {
                         <button class="btn btn-primary" id="next-step">Suivant</button>
                     </div>
                 </div>
+            </div>
+        `;
+    },
+
+    async renderHistory() {
+        return `
+            <div class="card">
+                <h3>Historique des demandes</h3>
+                <p>Cette section affichera vos dossiers archivés des années précédentes.</p>
+                <div class="info-box">Aucun historique disponible pour le moment.</div>
             </div>
         `;
     },

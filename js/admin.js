@@ -33,7 +33,7 @@ const ADMIN = {
         }
     },
 
-    async renderDashboard() {
+    async renderAdminDashboard() {
         const preValed = await handleResponse(sb.from('prevalidated_emails').select('*').order('created_at', { ascending: false }));
         const associations = await handleResponse(sb.from('associations').select('*'));
         
