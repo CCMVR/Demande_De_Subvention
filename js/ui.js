@@ -180,16 +180,23 @@ const UI = {
                     <p>C'est ici que vous pouvez gérer vos demandes de subvention annuelle pour la CCMVR.</p>
                 </section>
                 
-                <section class="card status-card">
+                    <section class="card status-card">
                     <h3>État de votre demande 2026</h3>
                     ${lastApp ? `
                         <div class="status-indicator ${lastApp.status}">
                             <i class="fas fa-circle"></i> Statut : ${lastApp.status.toUpperCase()}
                         </div>
                         <p>Dernière mise à jour : ${new Date(lastApp.created_at).toLocaleDateString()}</p>
-                        <button class="btn btn-secondary" id="download-pdf" style="margin-top:10px">
-                            <i class="fas fa-file-pdf"></i> Télécharger mon dossier (PDF)
-                        </button>
+                        <div class="card-actions" style="margin-top:15px; display:flex; gap:10px;">
+                            ${lastApp.status === 'draft' ? `
+                                <button class="btn btn-primary" onclick="UI.switchView('application')">
+                                    <i class="fas fa-edit"></i> Continuer ma demande
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-secondary" id="download-pdf">
+                                <i class="fas fa-file-pdf"></i> Télécharger mon dossier (PDF)
+                            </button>
+                        </div>
                     ` : `
                         <p>Aucune demande en cours pour l'année 2026.</p>
                         <button class="btn btn-primary" onclick="UI.switchView('application')">Démarrer une demande</button>
@@ -336,6 +343,11 @@ const UI = {
                     <div class="step-badge">2</div>
                     <div class="step-badge">3</div>
                     <div class="step-badge">4</div>
+                    <div class="step-badge">5</div>
+                    <div class="step-badge">6</div>
+                    <div class="step-badge">7</div>
+                    <div class="step-badge">8</div>
+                    <div class="step-badge">9</div>
                 </div>
                 
                 <div id="step-content" class="card">

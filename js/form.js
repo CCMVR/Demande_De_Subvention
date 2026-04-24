@@ -4,7 +4,13 @@
 const FORM = {
     currentStep: 1,
     data: {
-        application: { year: 2026, status: 'draft', selected_axe: null, total_requested: 0 },
+        application: { 
+            year: 2026, 
+            status: 'draft', 
+            application_type: 'globale', 
+            selected_axe: null, 
+            total_requested: 0 
+        },
         association: {},
         financials: [],
         metrics: {}
@@ -22,6 +28,9 @@ const FORM = {
             // Load Dynamic Config from DB
             this.config.axes = await DB.getFormAxes();
             
+            // RESET DATA TO DEFAULTS
+            this.resetData();
+
             // Load existing draft if any
             if (STATE.association) {
                 const apps = await DB.getApplicationsByAssoc(STATE.association.id);
@@ -29,18 +38,29 @@ const FORM = {
                 if (draft) {
                     const full = await DB.getFullApplication(draft.id);
                     this.data = full;
-                } else {
-                    this.initDefaultFinancials();
                 }
-            } else {
-                this.initDefaultFinancials();
             }
         } catch (err) {
             console.error("Form init error", err);
-            this.initDefaultFinancials(); // Fallback
         } finally {
             UI.toggleLoader(false);
         }
+    },
+
+    resetData() {
+        this.data = {
+            application: { 
+                year: 2026, 
+                status: 'draft', 
+                application_type: 'globale', 
+                selected_axe: null, 
+                total_requested: 0 
+            },
+            association: {},
+            financials: [],
+            metrics: {}
+        };
+        this.initDefaultFinancials();
     },
 
     initDefaultFinancials() {
@@ -64,13 +84,14 @@ const FORM = {
 
         switch(step) {
             case 1: container.innerHTML = this.tplNotice(); break;
-            case 2: container.innerHTML = this.tplIdentity(); break;
-            case 3: container.innerHTML = this.tplAxes(); break;
-            case 4: container.innerHTML = this.tplDetails(); break;
-            case 5: container.innerHTML = this.tplFinancials('expense'); break;
-            case 6: container.innerHTML = this.tplFinancials('revenue'); break;
-            case 7: container.innerHTML = this.tplBilan(); break;
-            case 8: container.innerHTML = this.tplDeclarations(); break;
+            case 2: container.innerHTML = this.tplType(); break;
+            case 3: container.innerHTML = this.tplIdentity(); break;
+            case 4: container.innerHTML = this.tplAxes(); break;
+            case 5: container.innerHTML = this.tplDetails(); break;
+            case 6: container.innerHTML = this.tplFinancials('expense'); break;
+            case 7: container.innerHTML = this.tplFinancials('revenue'); break;
+            case 8: container.innerHTML = this.tplBilan(); break;
+            case 9: container.innerHTML = this.tplDeclarations(); break;
         }
 
         this.bindEvents();
@@ -86,6 +107,36 @@ const FORM = {
                 </div>
                 <div class="form-actions">
                     <button class="btn btn-primary" onclick="FORM.renderStep(2)">Démarrer</button>
+                </div>
+            </div>
+        `;
+    },
+
+    tplType() {
+        const types = [
+            { id: 'globale', label: 'Demande de fonctionnement globale' },
+            { id: 'projet', label: 'Demande de fonctionnement sur projet' },
+            { id: 'exceptionnelle', label: 'Demande exceptionnelle' },
+            { id: 'investissement', label: "Demande d'investissement" }
+        ];
+        
+        return `
+            <div class="form-step">
+                <h3>Type de demande</h3>
+                <p class="help-text">Veuillez sélectionner la nature de votre demande de subvention.</p>
+                <div class="type-selection grid-2">
+                    ${types.map(t => `
+                        <label class="type-option card luxe ${this.data.application.application_type === t.id ? 'active' : ''}">
+                            <input type="radio" name="app-type" value="${t.id}" ${this.data.application.application_type === t.id ? 'checked' : ''} onchange="FORM.data.application.application_type = this.value; FORM.renderStep(2)">
+                            <div class="type-info">
+                                <strong>${t.label}</strong>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="FORM.renderStep(1)">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(3)">Suivant</button>
                 </div>
             </div>
         `;
@@ -123,6 +174,38 @@ const FORM = {
         `;
     },
 
+    tplIdentity() {
+        const assoc = STATE.association || {};
+        return `
+            <div class="form-step">
+                <h3>Fiche Identité</h3>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Nom de l'association</label>
+                        <input type="text" id="f-name" value="${assoc.name || ''}" placeholder="Ex: ACIJA">
+                    </div>
+                    <div class="input-group">
+                        <label>SIRET</label>
+                        <input type="text" id="f-siret" value="${assoc.siret || ''}">
+                    </div>
+                    <div class="input-group">
+                        <label>Mail de contact</label>
+                        <input type="email" id="f-email" value="${assoc.contact_email || ''}">
+                    </div>
+                    <div class="input-group highlight">
+                        <label>Subvention demandée (€)</label>
+                        <input type="number" id="f-requested" value="${this.data.application.total_requested || 0}">
+                        <small>Ce montant sera reporté automatiquement à la ligne 74 (Recettes).</small>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" onclick="FORM.renderStep(2)">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(4)">Suivant</button>
+                </div>
+            </div>
+        `;
+    },
+
     tplAxes() {
         const axes = this.config.axes.length > 0 ? this.config.axes : EXCEL_MAPPING.axes;
         return `
@@ -141,8 +224,8 @@ const FORM = {
                     `).join('')}
                 </div>
                 <div class="form-actions">
-                    <button class="btn" onclick="FORM.renderStep(2)">Précédent</button>
-                    <button class="btn btn-primary" onclick="FORM.saveAndNext(4)">Suivant</button>
+                    <button class="btn" onclick="FORM.renderStep(3)">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(5)">Suivant</button>
                 </div>
             </div>
         `;
@@ -168,8 +251,8 @@ const FORM = {
                     `).join('') || '<p>Aucune question spécifique pour cet axe.</p>'}
                 </div>
                 <div class="form-actions">
-                    <button class="btn" onclick="FORM.renderStep(3)">Précédent</button>
-                    <button class="btn btn-primary" onclick="FORM.saveAndNext(5)">Suivant</button>
+                    <button class="btn" onclick="FORM.renderStep(4)">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(6)">Suivant</button>
                 </div>
             </div>
         `;
@@ -216,8 +299,8 @@ const FORM = {
                     </table>
                 </div>
                 <div class="form-actions">
-                    <button class="btn" onclick="FORM.renderStep(${type === 'expense' ? 4 : 5})">Précédent</button>
-                    <button class="btn btn-primary" onclick="FORM.saveAndNext(${type === 'expense' ? 6 : 7})">Suivant</button>
+                    <button class="btn" onclick="FORM.renderStep(${type === 'expense' ? 5 : 6})">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(${type === 'expense' ? 7 : 8})">Suivant</button>
                 </div>
             </div>
         `;
@@ -264,8 +347,8 @@ const FORM = {
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button class="btn" onclick="FORM.renderStep(6)">Précédent</button>
-                    <button class="btn btn-primary" onclick="FORM.saveAndNext(8)">Suivant</button>
+                    <button class="btn" onclick="FORM.renderStep(7)">Précédent</button>
+                    <button class="btn btn-primary" onclick="FORM.saveAndNext(9)">Suivant</button>
                 </div>
             </div>
         `;
@@ -302,7 +385,7 @@ const FORM = {
                     </label>
                 </div>
                 <div class="form-actions">
-                    <button class="btn" onclick="FORM.renderStep(7)">Précédent</button>
+                    <button class="btn" onclick="FORM.renderStep(8)">Précédent</button>
                     <button class="btn btn-primary" id="final-submit" onclick="FORM.submitApplication()">Soumettre la demande</button>
                 </div>
             </div>
@@ -350,13 +433,13 @@ const FORM = {
         });
 
         // Initialize totals on load
-        if (this.currentStep === 5 || this.currentStep === 6) {
+        if (this.currentStep === 6 || this.currentStep === 7) {
             this.updateStepTotals();
         }
     },
 
     updateStepTotals() {
-        const type = this.currentStep === 5 ? 'expense' : 'revenue';
+        const type = this.currentStep === 6 ? 'expense' : 'revenue';
         const rows = this.data.financials.filter(f => f.type === type);
         
         const bpTotal = rows.reduce((sum, r) => sum + (parseFloat(r.bp_year) || 0), 0);
@@ -390,7 +473,7 @@ const FORM = {
             if (res.error) throw res.error;
 
             // 2. Save Financials (Batch)
-            if (this.currentStep === 5 || this.currentStep === 6) {
+            if (this.currentStep === 6 || this.currentStep === 7) {
                 const finData = this.data.financials.map(f => ({
                     ...f,
                     application_id: this.data.application.id
