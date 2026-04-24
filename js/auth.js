@@ -110,12 +110,12 @@ const AUTH = {
             const newAssoc = await DB.createAssociation(assocData);
             if (!newAssoc) throw new Error("Erreur lors de la création de la fiche association.");
 
-            // C. Create Profile Record (Link Auth User to Association)
-            const profileRes = await DB.createProfile({
+            // C. Create/Update Profile Record (Link Auth User to Association)
+            // Using upsert to prevent "duplicate key" errors if profile already exists
+            await DB.createProfile({
                 id: authData.user.id,
                 association_id: newAssoc.id
             });
-            console.log("Profile created:", profileRes);
 
             UI.notify("Inscription réussie ! Vous pouvez maintenant vous connecter.", "success");
             UI.toggleAuthMode('login');
@@ -150,19 +150,18 @@ const AUTH = {
             } 
             
             // 2. Fallback: If no link, try to find association by user email
-            if (!STATE.association) {
-                console.log("AUTH: Searching association by email fallback...");
-                const results = await sb.from('associations').select('*').eq('contact_email', STATE.user.email);
-                if (results.data && results.data.length > 0) {
-                    STATE.association = results.data[0];
+            if (!STATE.association && STATE.user.email) {
+                console.log("AUTH: Searching association by email fallback for", STATE.user.email);
+                const { data: results, error: searchErr } = await sb.from('associations')
+                    .select('*')
+                    .or(`contact_email.eq.${STATE.user.email},name.ilike.%${STATE.user.email.split('@')[0]}%`);
+                
+                if (results && results.length > 0) {
+                    STATE.association = results[0];
                     console.log("AUTH: Fallback found association:", STATE.association.name);
                     
-                    // Repair the profile link in background
-                    if (profile) {
-                        await sb.from('profiles').update({ association_id: STATE.association.id }).eq('id', STATE.user.id);
-                    } else {
-                        await sb.from('profiles').insert([{ id: STATE.user.id, association_id: STATE.association.id }]);
-                    }
+                    // Repair the profile link
+                    await DB.createProfile({ id: STATE.user.id, association_id: STATE.association.id });
                 }
             }
 

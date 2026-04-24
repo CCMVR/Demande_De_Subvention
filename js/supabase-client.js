@@ -52,7 +52,7 @@ const DB = {
 
     async createProfile(profileData) {
         return await handleResponse(
-            sb.from('profiles').insert([profileData])
+            sb.from('profiles').upsert([profileData])
         );
     },
 
