@@ -403,6 +403,23 @@ h3 {
     gap: 20px;
 }
 
+.btn-danger-outline {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+.btn-danger-outline:hover {
+    background: #fef2f2;
+}
+
+.error-box {
+    background: #f1f5f9;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    margin: 20px 0;
+}
+
 .info-box {
     background: #f1f5f9;
     padding: 20px;

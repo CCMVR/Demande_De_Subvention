@@ -187,10 +187,13 @@ const UI = {
                             <i class="fas fa-circle"></i> Statut : ${lastApp.status.toUpperCase()}
                         </div>
                         <p>Dernière mise à jour : ${new Date(lastApp.created_at).toLocaleDateString()}</p>
-                        <div class="card-actions" style="margin-top:15px; display:flex; gap:10px;">
+                        <div class="card-actions" style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
                             ${lastApp.status === 'draft' ? `
                                 <button class="btn btn-primary" onclick="UI.switchView('application')">
                                     <i class="fas fa-edit"></i> Continuer ma demande
+                                </button>
+                                <button class="btn btn-danger-outline" onclick="FORM.deleteApplication('${lastApp.id}')">
+                                    <i class="fas fa-trash-alt"></i> Supprimer
                                 </button>
                             ` : ''}
                             <button class="btn btn-secondary" id="download-pdf">

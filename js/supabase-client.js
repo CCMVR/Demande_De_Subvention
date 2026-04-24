@@ -91,5 +91,11 @@ const DB = {
         );
         
         return { ...application, financials, metrics };
+    },
+
+    async deleteApplication(appId) {
+        return await handleResponse(
+            sb.from('grant_applications').delete().eq('id', appId)
+        );
     }
 };

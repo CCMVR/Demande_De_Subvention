@@ -29,19 +29,37 @@ const FORM = {
 
         try {
             // Load Dynamic Config from DB
-            this.config.axes = await DB.getFormAxes();
-
-            // Load existing draft if any
-            if (STATE.association) {
+            this.config.axes = await DB.getFormAxes() || [];
+            
+            // Load existing draft if any (Safety: Ensure association exists)
+            if (STATE.association && STATE.association.id) {
                 const apps = await DB.getApplicationsByAssoc(STATE.association.id);
                 const draft = apps.find(a => a.status === 'draft' && a.year === 2026);
                 if (draft) {
                     const full = await DB.getFullApplication(draft.id);
-                    this.data = full;
+                    if (full && full.id) {
+                        this.data = full;
+                        console.log("Form: Loaded draft", full.id);
+                    }
                 }
             }
         } catch (err) {
             console.error("Form init error", err);
+        } finally {
+            UI.toggleLoader(false);
+        }
+    },
+
+    async deleteApplication(appId) {
+        if (!confirm("Voulez-vous vraiment supprimer définitivement ce brouillon ?")) return;
+        
+        UI.toggleLoader(true);
+        try {
+            await DB.deleteApplication(appId);
+            UI.notify("Demande supprimée.", "success");
+            UI.switchView('dashboard');
+        } catch (err) {
+            UI.notify("Erreur lors de la suppression.", "error");
         } finally {
             UI.toggleLoader(false);
         }
