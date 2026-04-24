@@ -111,8 +111,8 @@ const FORM = {
                     </div>
                     <div class="input-group highlight">
                         <label>Subvention demandée (€)</label>
-                        <input type="number" id="f-requested" value="${this.data.application.total_requested || 0}" readonly class="readonly-input">
-                        <small>Ce montant est synchronisé avec la ligne 74 de l'étape 6.</small>
+                        <input type="number" id="f-requested" value="${this.data.application.total_requested || 0}">
+                        <small>Ce montant sera reporté automatiquement à la ligne 74 (Recettes).</small>
                     </div>
                 </div>
                 <div class="form-actions">
@@ -310,6 +310,19 @@ const FORM = {
     },
 
     bindEvents() {
+        // Sync requested amount from Identity step
+        const requestedInput = document.getElementById('f-requested');
+        if (requestedInput) {
+            requestedInput.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value) || 0;
+                this.data.application.total_requested = val;
+                
+                // Propagate to financials (account 74: Subvention demandée)
+                const rec = this.data.financials.find(f => f.account_code === '74');
+                if (rec) rec.bp_year = val;
+            });
+        }
+
         // Sync financial inputs to local data and trigger totals
         document.querySelectorAll('.calc-input').forEach(input => {
             input.addEventListener('input', (e) => {
