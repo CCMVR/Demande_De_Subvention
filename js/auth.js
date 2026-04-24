@@ -111,10 +111,11 @@ const AUTH = {
             if (!newAssoc) throw new Error("Erreur lors de la création de la fiche association.");
 
             // C. Create Profile Record (Link Auth User to Association)
-            await DB.createProfile({
+            const profileRes = await DB.createProfile({
                 id: authData.user.id,
                 association_id: newAssoc.id
             });
+            console.log("Profile created:", profileRes);
 
             UI.notify("Inscription réussie ! Vous pouvez maintenant vous connecter.", "success");
             UI.toggleAuthMode('login');
@@ -129,26 +130,35 @@ const AUTH = {
 
     async loadProfile() {
         try {
-            // Reset UI state before loading new profile
             UI.resetRoleUI();
+            if (!STATE.user) return;
+
+            console.log("AUTH: Loading profile for", STATE.user.email);
 
             const profile = await DB.getProfile(STATE.user.id);
             STATE.profile = profile;
             
             if (profile && profile.association_id) {
                 STATE.association = await DB.getAssociation(profile.association_id);
-                document.getElementById('org-name').textContent = STATE.association.name;
-                document.getElementById('user-role').textContent = "Association";
-                await FORM.init();
-                UI.switchView('dashboard');
-            } else if (STATE.user.email && STATE.user.email.toLowerCase() === CONFIG.AO_EMAIL.toLowerCase()) {
+                
+                if (STATE.association) {
+                    document.getElementById('org-name').textContent = STATE.association.name;
+                    document.getElementById('user-role').textContent = "Association";
+                    await FORM.init();
+                    UI.switchView('dashboard');
+                    return;
+                }
+            } 
+            
+            // If we reach here, it's either an Admin or a user without association
+            if (STATE.user.email && STATE.user.email.toLowerCase() === CONFIG.AO_EMAIL.toLowerCase()) {
                 document.getElementById('org-name').textContent = "Administration CCMVR";
                 document.getElementById('user-role').textContent = "Admin";
                 document.getElementById('admin-menu').classList.remove('hidden');
                 await ADMIN.init();
                 UI.switchView('admin-dashboard');
             } else {
-                // Default fallback for new users without associations yet
+                console.warn("AUTH: No association linked to this profile.");
                 document.getElementById('org-name').textContent = "Nouvel Utilisateur";
                 document.getElementById('user-role').textContent = "En attente";
                 UI.switchView('dashboard');

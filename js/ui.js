@@ -145,6 +145,9 @@ const UI = {
                 case 'history':
                     html = await UI.renderHistory();
                     break;
+                case 'profile':
+                    html = await UI.renderProfile();
+                    break;
                 case 'admin-dashboard':
                     html = await ADMIN.renderAdminDashboard();
                     break;
@@ -203,6 +206,125 @@ const UI = {
         `;
     },
 
+    async renderProfile() {
+        if (!STATE.association) return `
+            <div class="card">
+                <h3>Profil non trouvé</h3>
+                <p>Impossible de charger les informations de votre association. Vérifiez que votre compte est correctement activé.</p>
+            </div>
+        `;
+
+        const a = STATE.association;
+        return `
+            <div class="card">
+                <h3>Mon Profil Association</h3>
+                <p class="help-text">Modifiez ici les informations de base qui seront utilisées pour vos futures demandes.</p>
+                <form id="profile-edit-form" style="margin-top: 20px">
+                    <div class="form-section">
+                        <h4>Informations Administratives</h4>
+                        <div class="input-group">
+                            <label>Nom de l'association</label>
+                            <input type="text" id="p-name" value="${a.name || ''}" required>
+                        </div>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Numéro RNA</label>
+                                <input type="text" id="p-rna" value="${a.rna || ''}" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Date de création</label>
+                                <input type="date" id="p-creation-date" value="${a.creation_date || ''}" required>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Numéro SIREN</label>
+                                <input type="text" id="p-siren" value="${a.siren || ''}" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Numéro SIRET</label>
+                                <input type="text" id="p-siret" value="${a.siret || ''}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>Gouvernance & Statuts</h4>
+                        <div class="input-group">
+                            <label>Nom complet du déclarant</label>
+                            <input type="text" id="p-declarant" value="${a.declarant_name || ''}" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Liste des dirigeants (Bureau)</label>
+                            <textarea id="p-leaders" rows="3" required>${a.leaders_list || ''}</textarea>
+                        </div>
+                        <div class="input-group">
+                            <label>Texte des statuts</label>
+                            <textarea id="p-statutes" rows="5" required>${a.statutes_text || ''}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>Coordonnées de contact</h4>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Email de contact public</label>
+                                <input type="email" id="p-contact-email" value="${a.contact_email || ''}" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Numéro de contact</label>
+                                <input type="tel" id="p-contact-phone" value="${a.contact_phone || ''}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                    </div>
+                </form>
+            </div>
+        `;
+    },
+
+    bindProfileEvents() {
+        const form = document.getElementById('profile-edit-form');
+        if (!form) return;
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            UI.toggleLoader(true);
+            
+            const updatedData = {
+                name: document.getElementById('p-name').value,
+                rna: document.getElementById('p-rna').value,
+                creation_date: document.getElementById('p-creation-date').value,
+                siren: document.getElementById('p-siren').value,
+                siret: document.getElementById('p-siret').value,
+                declarant_name: document.getElementById('p-declarant').value,
+                leaders_list: document.getElementById('p-leaders').value,
+                statutes_text: document.getElementById('p-statutes').value,
+                contact_email: document.getElementById('p-contact-email').value,
+                contact_phone: document.getElementById('p-contact-phone').value
+            };
+
+            try {
+                const { error } = await sb.from('associations')
+                    .update(updatedData)
+                    .eq('id', STATE.association.id);
+                
+                if (error) throw error;
+                
+                STATE.association = { ...STATE.association, ...updatedData };
+                document.getElementById('org-name').textContent = STATE.association.name;
+                UI.notify("Profil mis à jour avec succès !", "success");
+            } catch (err) {
+                UI.notify("Erreur lors de la mise à jour : " + err.message, "error");
+            } finally {
+                UI.toggleLoader(false);
+            }
+        });
+    },
+
     async renderApplicationForm() {
         // Simplified view for now, will be expanded into a stepper
         return `
@@ -255,6 +377,10 @@ const UI = {
         
         if (viewId === 'application') {
             FORM.renderStep(1);
+        }
+
+        if (viewId === 'profile') {
+            UI.bindProfileEvents();
         }
     }
 };
