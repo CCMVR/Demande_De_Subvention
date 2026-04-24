@@ -681,15 +681,41 @@ h3 {
 /* Admin Config Management */
 .config-container {
     display: grid;
-    grid-template-columns: 350px 1fr;
+    grid-template-columns: 400px 1fr;
     gap: 30px;
     margin-top: 20px;
+    min-height: 500px;
 }
 .config-sidebar {
     background: white;
-    padding: 20px;
+    padding: 25px;
     border-radius: var(--radius);
     border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+}
+.mini-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f1f5f9;
+}
+.mini-form input, .mini-form select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.mini-form input:focus {
+    border-color: var(--primary-color);
+}
+.mini-form button {
+    width: 100%;
 }
 .config-list {
     margin-top: 15px;
