@@ -290,6 +290,21 @@ const UI = {
                         </div>
                     </div>
 
+                    <div class="form-section highlight">
+                        <h4>Finances Globales de l'Association</h4>
+                        <p class="help-text">Renseignez ici les montants globaux de votre structure pour l'analyse générale.</p>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Budget total de fonctionnement (€)</label>
+                                <input type="number" id="p-total-budget" value="${a.total_budget || 0}">
+                            </div>
+                            <div class="input-group">
+                                <label>Nombre de salariés (ETP)</label>
+                                <input type="number" id="p-employees" value="${a.employees_count || 0}">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
                     </div>
@@ -316,7 +331,10 @@ const UI = {
                 leaders_list: document.getElementById('p-leaders').value,
                 statutes_text: document.getElementById('p-statutes').value,
                 contact_email: document.getElementById('p-contact-email').value,
-                contact_phone: document.getElementById('p-contact-phone').value
+                contact_phone: document.getElementById('p-contact-phone').value,
+                total_budget: parseFloat(document.getElementById('p-total-budget').value) || 0,
+                employees_count: parseFloat(document.getElementById('p-employees').value) || 0,
+                updated_at: new Date().toISOString()
             };
 
             try {

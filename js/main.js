@@ -76,6 +76,12 @@ const EXCEL_MAPPING = {
         { code: '76', group: 'R4', label: "Produits financiers" },
         { code: '77', group: 'R5', label: "Produits exceptionnels" },
         { code: '78', group: 'R6', label: "Reprise sur Amortis. et provisions" },
-        { code: '79', group: 'R7', label: "Transfert de charges" }
+        { code: '79', group: 'R7', label: "Transfert de charges" },
+
+        // BILAN (S)
+        { code: 'TRESO', group: 'S1', label: "Trésorerie disponible (Actif)" },
+        { code: 'DETTES', group: 'S2', label: "Dettes (Passif)" },
+        { code: 'RESULTAT', group: 'S3', label: "Résultat de l'exercice" },
+        { code: 'RESERVES', group: 'S4', label: "Report à nouveau / Réserves" }
     ]
 };

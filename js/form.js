@@ -212,38 +212,6 @@ const FORM = {
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button class="btn" onclick="FORM.renderStep(1)">Précédent</button>
-                    <button class="btn btn-primary" onclick="FORM.saveAndNext(3)">Suivant</button>
-                </div>
-            </div>
-        `;
-    },
-
-    tplIdentity() {
-        const assoc = STATE.association || {};
-        return `
-            <div class="form-step">
-                <h3>Fiche Identité</h3>
-                <div class="grid-2">
-                    <div class="input-group">
-                        <label>Nom de l'association</label>
-                        <input type="text" id="f-name" value="${assoc.name || ''}" placeholder="Ex: ACIJA">
-                    </div>
-                    <div class="input-group">
-                        <label>SIRET</label>
-                        <input type="text" id="f-siret" value="${assoc.siret || ''}">
-                    </div>
-                    <div class="input-group">
-                        <label>Mail de contact</label>
-                        <input type="email" id="f-email" value="${assoc.contact_email || ''}">
-                    </div>
-                    <div class="input-group highlight">
-                        <label>Subvention demandée (€)</label>
-                        <input type="number" id="f-requested" value="${this.data.application.total_requested || 0}">
-                        <small>Ce montant sera reporté automatiquement à la ligne 74 (Recettes).</small>
-                    </div>
-                </div>
-                <div class="form-actions">
                     <button class="btn" onclick="FORM.renderStep(2)">Précédent</button>
                     <button class="btn btn-primary" onclick="FORM.saveAndNext(4)">Suivant</button>
                 </div>
@@ -306,12 +274,16 @@ const FORM = {
     },
 
     tplFinancials(type) {
-        const title = type === 'expense' ? 'Section 1 : CHARGES' : 'Section 2 : RECETTES';
-        const rows = this.data.financials.filter(f => f.type === type);
+        const title = type === 'expense' ? 'Dépenses (Charges)' : 'Recettes (Produits)';
+        const allRows = this.data.financials.filter(f => f.type === type);
+        
+        // Group rows by their group ID
+        const groups = [...new Set(allRows.map(r => r.group))];
         
         return `
             <div class="form-step wide">
-                <h3>${title}</h3>
+                <h3>${title} - Budget prévisionnel par axe</h3>
+                <p class="help-text">Détaillez ici les montants spécifiques au projet/axe sélectionné.</p>
                 <div class="table-responsive">
                     <table class="financial-table">
                         <thead>
@@ -319,28 +291,49 @@ const FORM = {
                                 <th>Compte</th>
                                 <th>Libellé</th>
                                 <th>BP 2026</th>
-                                <th>CR 2025</th>
-                                <th>CR 2024</th>
-                                <th>Evolution %</th>
+                                <th>CR 2025 (N-1)</th>
+                                <th>CR 2024 (N-2)</th>
+                                <th>CR 2023 (N-3)</th>
+                                <th>Evol. %</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${rows.map(row => `
-                                <tr>
-                                    <td>${row.account_code}</td>
-                                    <td>${row.label}</td>
-                                    <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="bp_year" value="${row.bp_year}"></td>
-                                    <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1}"></td>
-                                    <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2}"></td>
-                                    <td class="readonly-cell">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(row.bp_year, row.cr_n1) : 0}%</td>
-                                </tr>
-                            `).join('')}
+                            ${groups.map(groupCode => {
+                                const groupRows = allRows.filter(r => r.group === groupCode);
+                                return `
+                                    ${groupRows.map(row => `
+                                        <tr class="${row.isReadOnly ? 'readonly-row' : ''} ${row.isOther ? 'other-row' : ''}">
+                                            <td>${row.account_code}</td>
+                                            <td>
+                                                ${row.isOther 
+                                                    ? `<input type="text" class="calc-label" data-code="${row.account_code}" value="${row.label}" placeholder="Précisez ici...">`
+                                                    : row.label
+                                                }
+                                            </td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="bp_year" value="${row.bp_year || 0}" ${row.isReadOnly ? 'readonly' : ''}></td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1 || 0}"></td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2 || 0}"></td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n3" value="${row.cr_n3 || 0}"></td>
+                                            <td class="readonly-cell row-evol" data-code="${row.account_code}">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(row.bp_year, row.cr_n1) : 0}%</td>
+                                        </tr>
+                                    `).join('')}
+                                    <tr class="subtotal-row">
+                                        <td colspan="2">Sous-total ${groupCode}</td>
+                                        <td class="st-bp" data-group="${groupCode}">0</td>
+                                        <td class="st-n1" data-group="${groupCode}">0</td>
+                                        <td class="st-n2" data-group="${groupCode}">0</td>
+                                        <td class="st-n3" data-group="${groupCode}">0</td>
+                                        <td class="st-evol" data-group="${groupCode}">0%</td>
+                                    </tr>
+                                `;
+                            }).join('')}
                             <tr class="total-row">
-                                <td colspan="2">TOTAL ${title}</td>
+                                <td colspan="2">TOTAL GÉNÉRAL ${title}</td>
                                 <td id="total-bp">0</td>
                                 <td id="total-n1">0</td>
                                 <td id="total-n2">0</td>
-                                <td></td>
+                                <td id="total-n3">0</td>
+                                <td id="total-evol">0%</td>
                             </tr>
                         </tbody>
                     </table>
@@ -356,42 +349,55 @@ const FORM = {
     tplBilan() {
         return `
             <div class="form-step wide">
-                <h3>Bilan Simplifié</h3>
-                <div class="grid-2">
-                    <div class="card">
-                        <h4>ACTIF (Ce que l'on possède)</h4>
-                        <div class="input-group">
-                            <label>Immobilisations (Bâtiments, matériel...)</label>
-                            <input type="number" class="bilan-input" data-key="actif_immo" value="${this.data.application.actif_immo || 0}">
-                        </div>
-                        <div class="input-group">
-                            <label>Disponibilités (Argent en banque/caisse)</label>
-                            <input type="number" class="bilan-input" data-key="actif_dispo" value="${this.data.application.actif_dispo || 0}">
-                        </div>
-                        <div class="input-group">
-                            <label>Créances clients et autres</label>
-                            <input type="number" class="bilan-input" data-key="actif_creances" value="${this.data.application.actif_creances || 0}">
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h4>PASSIF (D'où vient l'argent)</h4>
-                        <div class="input-group">
-                            <label>Fonds propres (Fonds asso, réserves, report à nouveau)</label>
-                            <input type="number" class="bilan-input" data-key="passif_fonds" value="${this.data.application.passif_fonds || 0}">
-                        </div>
-                        <div class="input-group">
-                            <label>Résultat de l'exercice</label>
-                            <input type="number" class="bilan-input" data-key="passif_resultat" value="${this.data.application.passif_resultat || 0}">
-                        </div>
-                        <div class="input-group">
-                            <label>Fonds dédiés (Subventions fléchées non utilisées)</label>
-                            <input type="number" class="bilan-input" data-key="passif_dedies" value="${this.data.application.passif_dedies || 0}">
-                        </div>
-                        <div class="input-group">
-                            <label>Dettes (Fournisseurs, fiscales, sociales)</label>
-                            <input type="number" class="bilan-input" data-key="passif_dettes" value="${this.data.application.passif_dettes || 0}">
-                        </div>
-                    </div>
+                <h3>Bilan Simplifié de l'association</h3>
+                <p class="help-text">Informations générales sur la santé financière de la structure.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Indicateur</th>
+                                <th>2026 (Est.)</th>
+                                <th>2025 (N-1)</th>
+                                <th>2024 (N-2)</th>
+                                <th>2023 (N-3)</th>
+                                <th>Evol. %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Trésorerie disponible (Actif)</td>
+                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="bp_year" value="${this.getFinVal('TRESO', 'bp_year')}"></td>
+                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="cr_n1" value="${this.getFinVal('TRESO', 'cr_n1')}"></td>
+                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="cr_n2" value="${this.getFinVal('TRESO', 'cr_n2')}"></td>
+                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="cr_n3" value="${this.getFinVal('TRESO', 'cr_n3')}"></td>
+                                <td class="readonly-cell row-evol" data-code="TRESO">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('TRESO', 'bp_year'), this.getFinVal('TRESO', 'cr_n1')) : 0}%</td>
+                            </tr>
+                            <tr>
+                                <td>Dettes (Passif)</td>
+                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="bp_year" value="${this.getFinVal('DETTES', 'bp_year')}"></td>
+                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="cr_n1" value="${this.getFinVal('DETTES', 'cr_n1')}"></td>
+                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="cr_n2" value="${this.getFinVal('DETTES', 'cr_n2')}"></td>
+                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="cr_n3" value="${this.getFinVal('DETTES', 'cr_n3')}"></td>
+                                <td class="readonly-cell row-evol" data-code="DETTES">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('DETTES', 'bp_year'), this.getFinVal('DETTES', 'cr_n1')) : 0}%</td>
+                            </tr>
+                            <tr>
+                                <td>Résultat de l'exercice</td>
+                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="bp_year" value="${this.getFinVal('RESULTAT', 'bp_year')}"></td>
+                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="cr_n1" value="${this.getFinVal('RESULTAT', 'cr_n1')}"></td>
+                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="cr_n2" value="${this.getFinVal('RESULTAT', 'cr_n2')}"></td>
+                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="cr_n3" value="${this.getFinVal('RESULTAT', 'cr_n3')}"></td>
+                                <td class="readonly-cell row-evol" data-code="RESULTAT">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('RESULTAT', 'bp_year'), this.getFinVal('RESULTAT', 'cr_n1')) : 0}%</td>
+                            </tr>
+                            <tr>
+                                <td>Report à nouveau / Réserves</td>
+                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="bp_year" value="${this.getFinVal('RESERVES', 'bp_year')}"></td>
+                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="cr_n1" value="${this.getFinVal('RESERVES', 'cr_n1')}"></td>
+                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="cr_n2" value="${this.getFinVal('RESERVES', 'cr_n2')}"></td>
+                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="cr_n3" value="${this.getFinVal('RESERVES', 'cr_n3')}"></td>
+                                <td class="readonly-cell row-evol" data-code="RESERVES">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('RESERVES', 'bp_year'), this.getFinVal('RESERVES', 'cr_n1')) : 0}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
                 <div class="form-actions">
                     <button class="btn" onclick="FORM.renderStep(7)">Précédent</button>
@@ -399,6 +405,12 @@ const FORM = {
                 </div>
             </div>
         `;
+    },
+
+    getFinVal(code, field) {
+        if (!this.data.financials) return 0;
+        const row = this.data.financials.find(f => f.account_code === code);
+        return row ? (row[field] || 0) : 0;
     },
 
     tplDeclarations() {
@@ -472,6 +484,15 @@ const FORM = {
             });
         });
 
+        // Sync labels for "Other" rows
+        document.querySelectorAll('.calc-label').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const code = e.target.dataset.code;
+                const rec = this.data.financials.find(f => f.account_code === code);
+                if (rec) rec.label = e.target.value;
+            });
+        });
+
         // Sync metric inputs
         document.querySelectorAll('.metric-input').forEach(input => {
             input.addEventListener('change', (e) => {
@@ -487,19 +508,54 @@ const FORM = {
 
     updateStepTotals() {
         const type = this.currentStep === 6 ? 'expense' : 'revenue';
-        const rows = this.data.financials.filter(f => f.type === type);
+        const allRows = this.data.financials.filter(f => f.type === type);
         
-        const bpTotal = rows.reduce((sum, r) => sum + (parseFloat(r.bp_year) || 0), 0);
-        const n1Total = rows.reduce((sum, r) => sum + (parseFloat(r.cr_n1) || 0), 0);
-        const n2Total = rows.reduce((sum, r) => sum + (parseFloat(r.cr_n2) || 0), 0);
+        // 1. Update Group Sub-totals
+        const groups = [...new Set(allRows.map(r => r.group))];
+        groups.forEach(g => {
+            const gRows = allRows.filter(r => r.group === g);
+            const bp = gRows.reduce((s, r) => s + (parseFloat(r.bp_year) || 0), 0);
+            const n1 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n1) || 0), 0);
+            const n2 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n2) || 0), 0);
+            const n3 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n3) || 0), 0);
+            
+            document.querySelectorAll(`.st-bp[data-group="${g}"]`).forEach(el => el.textContent = bp.toLocaleString());
+            document.querySelectorAll(`.st-n1[data-group="${g}"]`).forEach(el => el.textContent = n1.toLocaleString());
+            document.querySelectorAll(`.st-n2[data-group="${g}"]`).forEach(el => el.textContent = n2.toLocaleString());
+            document.querySelectorAll(`.st-n3[data-group="${g}"]`).forEach(el => el.textContent = n3.toLocaleString());
+            
+            const evol = (window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(bp, n1) : 0;
+            document.querySelectorAll(`.st-evol[data-group="${g}"]`).forEach(el => el.textContent = evol + '%');
+        });
 
-        document.getElementById('total-bp').textContent = bpTotal.toLocaleString() + ' €';
-        document.getElementById('total-n1').textContent = n1Total.toLocaleString() + ' €';
-        document.getElementById('total-n2').textContent = n2Total.toLocaleString() + ' €';
+        // 1.5 Update Row Evolutions
+        allRows.forEach(row => {
+            const evol = (window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(row.bp_year, row.cr_n1) : 0;
+            document.querySelectorAll(`.row-evol[data-code="${row.account_code}"]`).forEach(el => el.textContent = evol + '%');
+        });
+
+        // 2. Update General Totals
+        const bpTotal = allRows.reduce((sum, r) => sum + (parseFloat(r.bp_year) || 0), 0);
+        const n1Total = allRows.reduce((sum, r) => sum + (parseFloat(r.cr_n1) || 0), 0);
+        const n2Total = allRows.reduce((sum, r) => sum + (parseFloat(r.cr_n2) || 0), 0);
+        const n3Total = allRows.reduce((sum, r) => sum + (parseFloat(r.cr_n3) || 0), 0);
+
+        if (document.getElementById('total-bp')) document.getElementById('total-bp').textContent = bpTotal.toLocaleString() + ' €';
+        if (document.getElementById('total-n1')) document.getElementById('total-n1').textContent = n1Total.toLocaleString() + ' €';
+        if (document.getElementById('total-n2')) document.getElementById('total-n2').textContent = n2Total.toLocaleString() + ' €';
+        if (document.getElementById('total-n3')) document.getElementById('total-n3').textContent = n3Total.toLocaleString() + ' €';
+        
+        const totalEvol = (window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(bpTotal, n1Total) : 0;
+        if (document.getElementById('total-evol')) document.getElementById('total-evol').textContent = totalEvol + '%';
     },
 
     async saveAndNext(nextStep) {
         if (!STATE.association) return this.renderStep(nextStep);
+
+        // Validation for Axe selection (Step 4)
+        if (this.currentStep === 4 && !this.data.application.selected_axe) {
+            return UI.notify("Veuillez sélectionner un axe avant de continuer.", "error");
+        }
 
         UI.toggleLoader(true);
         try {
@@ -520,10 +576,13 @@ const FORM = {
             if (res.error) throw res.error;
 
             // 2. Save Financials (Batch & Sanitize)
-            if (this.currentStep === 6 || this.currentStep === 7) {
+            if (this.currentStep === 6 || this.currentStep === 7 || this.currentStep === 8) {
                 const finData = this.data.financials.map(f => ({
                     application_id: this.data.application.id,
                     account_code: f.account_code,
+                    type: f.type,
+                    label: f.label,
+                    group: f.group,
                     bp_year: parseFloat(f.bp_year) || 0,
                     cr_n1: parseFloat(f.cr_n1) || 0,
                     cr_n2: parseFloat(f.cr_n2) || 0,

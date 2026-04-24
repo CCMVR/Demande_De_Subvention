@@ -102,7 +102,9 @@ const AUTH = {
             leaders_list: document.getElementById('reg-leaders').value,
             statutes_text: document.getElementById('reg-statutes').value,
             contact_email: document.getElementById('reg-contact-email').value,
-            contact_phone: document.getElementById('reg-contact-phone').value
+            contact_phone: document.getElementById('reg-contact-phone').value,
+            total_budget: 0,
+            employees_count: 0
         };
 
         UI.toggleLoader(true);
