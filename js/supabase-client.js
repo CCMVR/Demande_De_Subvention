@@ -7,13 +7,20 @@ if (!sb) console.error("CRITICAL: Supabase client could not be initialized. Chec
  * Utility function to handle Supabase responses
  */
 async function handleResponse(promise) {
+    if (!sb) {
+        const err = new Error("La connexion à la base de données n'est pas établie.");
+        console.error(err.message);
+        return null;
+    }
     try {
         const { data, error } = await promise;
         if (error) throw error;
         return data;
     } catch (err) {
         console.error("Supabase Error:", err.message);
-        UI.notify(err.message, "error");
+        // Avoid showing notification for background checks if not needed, 
+        // but here it's better to inform the user.
+        UI.notify("Erreur base de données : " + err.message, "error");
         throw err;
     }
 }

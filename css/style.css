@@ -17,11 +17,10 @@
 }
 
 .logo-container {
-    width: 60px;
-    height: 60px;
+    width: 120px;
+    height: 70px;
     margin: 0 auto 15px auto;
-    background: var(--primary-color);
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAADqYAAAemCAYAAADHWeH/AAAACXBIWXMAAC4jAAAuIwF4pT92AAAgAElEQVR4nOzdwVHbyZ/G4debAMoAZWDOfYGqDsDOYCaBLpOBFQJVJKAQNgGq/L9wXU0Eq8mAicB7YHYY24CxLen7E7/nuVCA1P1J4K1+8/nz5wDAsettXNzcXn+q7gAAAAAAAAAAAAAAAIDX7L+qAwDgV/U2Fkn+u7oDAAAAAAAAAAAAAAAAXjvDVABeg1WSTXUEAAAAAAAAAAAAAAAAvHaGqQAcrd7GKsnp379u60oAAAAAAAAAAAAAAABgHgxTAThKvY2zJB+rOwAAAAAAAAAAAAAAAGBODFMBOFZXX/3+qSICAAAAAAAAAAAAAAAA5sQwFYCj09u4THJe3QEAAAAAAAAAAAAAAABzY5gKwFHpbSyTrB75191hSwAAAAAAAAAAAAAAAGB+DFMBODbrJCdf//Hm9npz+BQAAAAAAAAAAAAAAACYF8NUAI5Gb+N9kvPqDgAAAAAAAAAAAAAAAJgrw1QAjkJvY5H711If88cBUwAAAAAAAAAAAAAAAGC2DFMBOBZXSU6e+N/dIUMAAAAAAAAAAAAAAABgrgxTAZi83sZFkt+qOwAAAAAAAAAAAAAAAGDuDFMBOLTe7rIA');
+    background-color: var(--primary-color);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -34,11 +33,12 @@
     font-size: 14px;
     box-shadow: var(--shadow);
     text-transform: uppercase;
+    transition: all 0.3s;
 }
 
 .auth-logo-container {
-    width: 100px;
-    height: 100px;
+    width: 240px;
+    height: 140px;
     font-size: 24px;
     border-radius: 20px;
 }

@@ -8,14 +8,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize Modules
     console.log("DOM Ready. Initializing App...");
+    
+    // 1. UI First (prepare elements)
+    UI.init();
+    
+    // 2. Auth Second (starts listener)
     try {
         console.log("Auth init...");
         await AUTH.init();
-        console.log("UI init...");
-        UI.init();
+        
+        // Safety check: If after 5 seconds the UI is still grey (nothing shown), force show login
+        setTimeout(() => {
+            const authVisible = !document.getElementById('auth-container').classList.contains('hidden');
+            const appVisible = !document.getElementById('app-content').classList.contains('hidden');
+            
+            if (!authVisible && !appVisible) {
+                console.warn("Safety timeout triggered: Force showing login screen.");
+                UI.showAuth();
+            }
+        }, 5000);
+
         console.log("CCMVR Application Ready.");
     } catch (err) {
         console.error("APP INITIALIZATION FAILED:", err);
+        UI.showAuth();
     }
 });
 

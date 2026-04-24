@@ -14,9 +14,17 @@ const UI = {
 
     applyLogo() {
         if (typeof LOGO_BASE64 !== 'undefined' && LOGO_BASE64 !== "") {
+            let logoUrl = LOGO_BASE64;
+            // Add prefix if missing
+            if (!logoUrl.startsWith('data:')) {
+                logoUrl = 'data:image/png;base64,' + logoUrl;
+            }
             const containers = document.querySelectorAll('.logo-container');
             containers.forEach(container => {
-                container.style.backgroundImage = `url('${LOGO_BASE64}')`;
+                container.style.backgroundImage = `url('${logoUrl}')`;
+                container.style.backgroundColor = 'transparent';
+                container.style.boxShadow = 'none';
+                container.textContent = ''; // Hide the "CCMVR" text
             });
         }
     },

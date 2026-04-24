@@ -1,16 +1,34 @@
 const AUTH = {
     async init() {
+        if (!sb) {
+            console.error("AUTH: Supabase client (sb) is not initialized.");
+            UI.notify("Erreur de connexion à la base de données.", "error");
+            UI.showAuth();
+            return;
+        }
+
         // Listen for auth changes
         sb.auth.onAuthStateChange(async (event, session) => {
-            if (session) {
-                STATE.user = session.user;
-                await AUTH.loadProfile();
-                UI.showApp();
-            } else {
-                STATE.user = null;
-                STATE.profile = null;
-                STATE.association = null;
-                UI.showAuth();
+            console.log("Auth Event:", event);
+            UI.toggleLoader(true);
+            
+            try {
+                if (session) {
+                    STATE.user = session.user;
+                    await AUTH.loadProfile();
+                    UI.showApp();
+                } else {
+                    STATE.user = null;
+                    STATE.profile = null;
+                    STATE.association = null;
+                    UI.showAuth();
+                }
+            } catch (err) {
+                console.error("Critical Auth Error:", err);
+                UI.notify("Erreur d'initialisation du compte.", "error");
+                UI.showAuth(); // Always fallback to something visible
+            } finally {
+                UI.toggleLoader(false);
             }
         });
 
