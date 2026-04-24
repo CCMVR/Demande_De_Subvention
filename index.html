@@ -46,19 +46,83 @@
                 </form>
 
                 <form id="register-form" class="hidden">
-                    <div class="input-group">
-                        <label for="reg-email">Adresse mail (pré-validée)</label>
-                        <input type="email" id="reg-email" required placeholder="nom@association.fr">
+                    <div class="form-section">
+                        <h4>Identifiants de connexion</h4>
+                        <div class="input-group">
+                            <label for="reg-email">Email de l'association (sert d'identifiant)</label>
+                            <input type="email" id="reg-email" required placeholder="contact@asso.fr">
+                        </div>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label for="reg-password">Mot de passe</label>
+                                <input type="password" id="reg-password" required placeholder="••••••••">
+                            </div>
+                            <div class="input-group">
+                                <label for="reg-confirm-password">Confirmation</label>
+                                <input type="password" id="reg-confirm-password" required placeholder="••••••••">
+                            </div>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="reg-password">Définir un mot de passe</label>
-                        <input type="password" id="reg-password" required placeholder="••••••••">
+
+                    <div class="form-section">
+                        <h4>Informations Administratives</h4>
+                        <div class="input-group">
+                            <label for="reg-assoc-name">Nom complet de l'association</label>
+                            <input type="text" id="reg-assoc-name" required placeholder="Ex: Club Sportif ...">
+                        </div>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label for="reg-rna">Numéro RNA</label>
+                                <input type="text" id="reg-rna" required placeholder="W000000000">
+                            </div>
+                            <div class="input-group">
+                                <label for="reg-creation-date">Date de création</label>
+                                <input type="date" id="reg-creation-date" required>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label for="reg-siren">Numéro SIREN</label>
+                                <input type="text" id="reg-siren" required placeholder="9 chiffres">
+                            </div>
+                            <div class="input-group">
+                                <label for="reg-siret">Numéro SIRET</label>
+                                <input type="text" id="reg-siret" required placeholder="14 chiffres">
+                            </div>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="reg-confirm-password">Confirmer le mot de passe</label>
-                        <input type="password" id="reg-confirm-password" required placeholder="••••••••">
+
+                    <div class="form-section">
+                        <h4>Gouvernance & Statuts</h4>
+                        <div class="input-group">
+                            <label for="reg-declarant">Nom complet du déclarant</label>
+                            <input type="text" id="reg-declarant" required placeholder="Prénom NOM">
+                        </div>
+                        <div class="input-group">
+                            <label for="reg-leaders">Liste des dirigeants (Bureau)</label>
+                            <textarea id="reg-leaders" rows="3" required placeholder="Président: ..., Trésorier: ..., etc."></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="reg-statutes">Texte des statuts (Copie brute)</label>
+                            <textarea id="reg-statutes" rows="4" required placeholder="Collez ici le texte de vos statuts..."></textarea>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">S'inscrire</button>
+
+                    <div class="form-section">
+                        <h4>Coordonnées de contact</h4>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label for="reg-contact-email">Email de contact public</label>
+                                <input type="email" id="reg-contact-email" required placeholder="asso@exemple.fr">
+                            </div>
+                            <div class="input-group">
+                                <label for="reg-contact-phone">Numéro de contact</label>
+                                <input type="tel" id="reg-contact-phone" required placeholder="06 00 00 00 00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Créer le compte association</button>
                     <p class="auth-footer">
                         Déjà un compte ? <a href="#" id="show-login">Se connecter</a>
                     </p>

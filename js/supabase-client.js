@@ -44,6 +44,18 @@ const DB = {
         );
     },
 
+    async createAssociation(assocData) {
+        return await handleResponse(
+            sb.from('associations').insert([assocData]).select().single()
+        );
+    },
+
+    async createProfile(profileData) {
+        return await handleResponse(
+            sb.from('profiles').insert([profileData])
+        );
+    },
+
     // Applications
     async getApplicationsByAssoc(assocId) {
         return await handleResponse(

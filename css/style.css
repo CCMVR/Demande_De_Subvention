@@ -89,21 +89,9 @@ body {
     padding: 20px;
 }
 
-.auth-card {
-    width: 100%;
-    max-width: 450px;
-    padding: 40px;
-    animation: fadeInScale 0.5s ease-out;
-}
-
 .auth-header {
     text-align: center;
     margin-bottom: 30px;
-}
-
-.auth-header img {
-    max-width: 120px;
-    margin-bottom: 15px;
 }
 
 .auth-header h1 {
@@ -112,30 +100,62 @@ body {
     color: var(--primary-color);
 }
 
+.auth-card {
+    width: 100%;
+    max-width: 600px;
+    padding: 40px;
+    animation: fadeInScale 0.5s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.form-section {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section h4 {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* Forms */
 .input-group {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .input-group label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     margin-bottom: 5px;
     color: var(--secondary-color);
 }
 
-.input-group input {
+.input-group input, .input-group textarea {
     width: 100%;
-    padding: 12px 15px;
+    padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid #cbd5e1;
     background: rgba(255, 255, 255, 0.9);
     font-family: inherit;
     transition: all 0.3s;
+    font-size: 0.95rem;
 }
 
-.input-group input:focus {
+.input-group textarea {
+    resize: vertical;
+}
+
+.input-group input:focus, .input-group textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(114, 28, 36, 0.1);

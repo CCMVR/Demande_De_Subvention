@@ -66,6 +66,8 @@ const AUTH = {
 
     async register(e) {
         e.preventDefault();
+        
+        // 1. Basic Auth Info
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
         const confirm = document.getElementById('reg-confirm-password').value;
@@ -74,31 +76,51 @@ const AUTH = {
             return UI.notify("Les mots de passe ne correspondent pas.", "error");
         }
 
+        // 2. Association Data
+        const assocData = {
+            name: document.getElementById('reg-assoc-name').value,
+            rna: document.getElementById('reg-rna').value,
+            creation_date: document.getElementById('reg-creation-date').value,
+            siren: document.getElementById('reg-siren').value,
+            siret: document.getElementById('reg-siret').value,
+            declarant_name: document.getElementById('reg-declarant').value,
+            leaders_list: document.getElementById('reg-leaders').value,
+            statutes_text: document.getElementById('reg-statutes').value,
+            contact_email: document.getElementById('reg-contact-email').value,
+            contact_phone: document.getElementById('reg-contact-phone').value
+        };
+
         UI.toggleLoader(true);
         try {
-            // Check pre-validation
-            const preVal = await sb.from('prevalidated_emails')
-                             .select('*')
-                             .eq('email', email)
-                             .is('used_at', null)
-                             .single();
+            // A. Create Auth User
+            const { data: authData, error: authError } = await sb.auth.signUp({ 
+                email, 
+                password,
+                options: {
+                    data: {
+                        assoc_name: assocData.name
+                    }
+                }
+            });
             
-            if (preVal.error) throw new Error("Votre adresse mail n'est pas pré-validée ou l'invitation a expiré.");
-            
-            // Check expiry (3 days)
-            const expiry = new Date(preVal.data.created_at);
-            expiry.setDate(expiry.getDate() + CONFIG.REGISTRATION_VALIDITY_DAYS);
-            if (new Date() > expiry) throw new Error("L'invitation a expiré (limite de 3 jours). Contactez l'admin.");
+            if (authError) throw authError;
+            if (!authData.user) throw new Error("Erreur lors de la création de l'utilisateur.");
 
-            const { data, error } = await sb.auth.signUp({ email, password });
-            if (error) throw error;
+            // B. Create Association Record
+            const newAssoc = await DB.createAssociation(assocData);
+            if (!newAssoc) throw new Error("Erreur lors de la création de la fiche association.");
 
-            // Mark as used
-            await sb.from('prevalidated_emails').update({ used_at: new Date() }).eq('id', preVal.data.id);
+            // C. Create Profile Record (Link Auth User to Association)
+            await DB.createProfile({
+                id: authData.user.id,
+                association_id: newAssoc.id
+            });
 
             UI.notify("Inscription réussie ! Vous pouvez maintenant vous connecter.", "success");
             UI.toggleAuthMode('login');
+            document.getElementById('register-form').reset();
         } catch (err) {
+            console.error("Registration Error:", err);
             UI.notify(err.message, "error");
         } finally {
             UI.toggleLoader(false);
