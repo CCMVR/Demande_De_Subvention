@@ -17,23 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log("Auth init...");
         await AUTH.init();
         
-        // Safety check: If after 8 seconds the UI is still grey (nothing shown), force show login
-        setTimeout(() => {
-            const authVisible = !document.getElementById('auth-container').classList.contains('hidden');
-            const appVisible = !document.getElementById('app-content').classList.contains('hidden');
-            
-            // If we have a user in STATE, we are likely loading profile, don't interrupt
-            if (STATE.user && !appVisible) {
-                console.log("AUTH: Profile loading is still in progress...");
-                return;
-            }
-
-            if (!authVisible && !appVisible) {
-                console.warn("Safety timeout triggered: Force showing login screen.");
-                UI.showAuth();
-            }
-        }, 8000);
-
         console.log("CCMVR Application Ready.");
     } catch (err) {
         console.error("APP INITIALIZATION FAILED:", err);

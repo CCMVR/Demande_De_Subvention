@@ -94,11 +94,13 @@ const UI = {
     },
 
     showAuth() {
+        document.getElementById('splash-screen')?.classList.add('hidden');
         document.getElementById('auth-container').classList.remove('hidden');
         document.getElementById('app-content').classList.add('hidden');
     },
 
     showApp() {
+        document.getElementById('splash-screen')?.classList.add('hidden');
         document.getElementById('auth-container').classList.add('hidden');
         document.getElementById('app-content').classList.remove('hidden');
     },
