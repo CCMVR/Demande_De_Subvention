@@ -88,27 +88,35 @@ const ADMIN = {
                     </div>
                 </section>
 
-                <section class="card full-width" id="config-section">
-                    <h3>Configuration du Formulaire</h3>
-                    <p class="help-text">Gérez ici les axes de financement et les questions spécifiques demandées aux associations.</p>
-                    <div class="grid-2">
-                        <div class="sub-card">
-                            <h4>Axes de financement</h4>
-                            <ul class="config-list">
+                <section class="card full-width config-card" id="config-section">
+                    <div class="card-header-icon">
+                        <i class="fas fa-cogs"></i>
+                        <h3>Configuration des Axes & Questions métiers</h3>
+                    </div>
+                    <p class="help-text">Gérez ici les axes de financement (Etape 4) et les questions spécifiques demandées aux associations (Etape 5).</p>
+                    
+                    <div class="config-container">
+                        <div class="config-sidebar">
+                            <h4>1. Choisir l'Axe</h4>
+                            <div class="config-list">
                                 ${axes.map(axe => `
-                                    <li class="clickable ${STATE.selectedAxe === axe.code ? 'active' : ''}" onclick="ADMIN.selectAxe('${axe.code}')">
-                                        <span><strong>${axe.code}</strong> : ${axe.principal}</span>
-                                        <button class="btn-icon text-danger" onclick="event.stopPropagation(); ADMIN.deleteAxe('${axe.code}')"><i class="fas fa-trash"></i></button>
-                                    </li>
-                                `).join('') || '<li>Aucun axe défini</li>'}
-                            </ul>
+                                    <div class="config-item ${STATE.selectedAxe === axe.code ? 'active' : ''}" onclick="ADMIN.selectAxe('${axe.code}')">
+                                        <span class="axe-code">${axe.code}</span>
+                                        <span class="axe-label">${axe.principal}</span>
+                                        <button class="btn-delete" onclick="event.stopPropagation(); ADMIN.deleteAxe('${axe.code}')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                `).join('') || '<p class="empty">Aucun axe défini</p>'}
+                            </div>
                             <div class="mini-form">
-                                <input type="text" id="new-axe-code" placeholder="Code (ex: 7a)" style="width:80px">
-                                <input type="text" id="new-axe-label" placeholder="Nom de l'axe">
-                                <button class="btn btn-sm btn-primary" onclick="ADMIN.addAxe()">Ajouter</button>
+                                <input type="text" id="new-axe-code" placeholder="Code (ex: 5a)">
+                                <input type="text" id="new-axe-label" placeholder="Intitulé de l'axe">
+                                <button class="btn btn-primary btn-sm" onclick="ADMIN.addAxe()">Ajouter l'axe</button>
                             </div>
                         </div>
-                        <div class="sub-card" id="metrics-management">
+
+                        <div class="config-main" id="metrics-management">
                             ${this.tplMetricsManagement()}
                         </div>
                     </div>
@@ -152,34 +160,43 @@ const ADMIN = {
     tplMetricsManagement() {
         if (!STATE.selectedAxe) {
             return `
-                <h4>Questions métiers</h4>
-                <p class="small">Sélectionnez un axe à gauche pour gérer ses questions métiers spécifiques (Étape 4).</p>
-                <div class="info-box">Aucun axe sélectionné.</div>
+                <div class="empty-state">
+                    <i class="fas fa-arrow-left"></i>
+                    <p>Sélectionnez un axe à gauche pour configurer les questions spécifiques.</p>
+                </div>
             `;
         }
 
-        // We'll need to fetch metrics for the selected axe. 
-        // For the template, we'll assume they are pre-loaded in STATE or fetch them.
         const metrics = STATE.currentAxeMetrics || [];
 
         return `
-            <h4>Questions pour l'axe ${STATE.selectedAxe}</h4>
-            <ul class="config-list">
+            <h4>2. Questions demandées pour l'axe ${STATE.selectedAxe}</h4>
+            <div class="metrics-grid">
                 ${metrics.map(m => `
-                    <li>
-                        <span>${m.label} (${m.input_type})</span>
-                        <button class="btn-icon text-danger" onclick="ADMIN.deleteMetric('${m.id}')"><i class="fas fa-trash"></i></button>
-                    </li>
-                `).join('') || '<li>Aucune question pour cet axe</li>'}
-            </ul>
-            <div class="mini-form">
-                <input type="text" id="new-metric-label" placeholder="Intitulé de la question">
-                <select id="new-metric-type">
-                    <option value="number">Nombre</option>
-                    <option value="text">Texte</option>
-                    <option value="time">Horaires</option>
-                </select>
-                <button class="btn btn-sm btn-primary" onclick="ADMIN.addMetric()">Ajouter</button>
+                    <div class="metric-config-item card">
+                        <div class="metric-main">
+                            <strong>${m.label}</strong>
+                            <span class="type-tag">${m.input_type}</span>
+                        </div>
+                        <button class="btn-icon text-danger" onclick="ADMIN.deleteMetric('${m.id}')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `).join('') || '<div class="info-box">Aucune question spécifique pour cet axe. Toutes les associations verront le même formulaire de base.</div>'}
+            </div>
+            
+            <div class="add-metric-box card">
+                <h5>Ajouter une question pour cet axe</h5>
+                <div class="mini-form">
+                    <input type="text" id="new-metric-label" placeholder="Ex: Nombre d'enfants accueillis">
+                    <select id="new-metric-type">
+                        <option value="number">Nombre (chiffres)</option>
+                        <option value="text">Texte libre</option>
+                        <option value="date">Date</option>
+                        <option value="time">Horaires / Durée</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="ADMIN.addMetric()">Ajouter la question</button>
+                </div>
             </div>
         `;
     },

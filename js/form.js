@@ -73,7 +73,7 @@ const FORM = {
         }));
     },
 
-    renderStep(step) {
+    async renderStep(step) {
         this.currentStep = step;
         const container = document.getElementById('step-content');
         
@@ -82,18 +82,20 @@ const FORM = {
             b.classList.toggle('completed', idx + 1 < step);
         });
 
+        let html = '';
         switch(step) {
-            case 1: container.innerHTML = this.tplNotice(); break;
-            case 2: container.innerHTML = this.tplType(); break;
-            case 3: container.innerHTML = this.tplIdentity(); break;
-            case 4: container.innerHTML = this.tplAxes(); break;
-            case 5: container.innerHTML = this.tplDetails(); break;
-            case 6: container.innerHTML = this.tplFinancials('expense'); break;
-            case 7: container.innerHTML = this.tplFinancials('revenue'); break;
-            case 8: container.innerHTML = this.tplBilan(); break;
-            case 9: container.innerHTML = this.tplDeclarations(); break;
+            case 1: html = this.tplNotice(); break;
+            case 2: html = this.tplType(); break;
+            case 3: html = this.tplIdentity(); break;
+            case 4: html = this.tplAxes(); break;
+            case 5: html = await this.tplDetails(); break;
+            case 6: html = this.tplFinancials('expense'); break;
+            case 7: html = this.tplFinancials('revenue'); break;
+            case 8: html = this.tplBilan(); break;
+            case 9: html = this.tplDeclarations(); break;
         }
-
+        
+        container.innerHTML = html;
         this.bindEvents();
     },
 

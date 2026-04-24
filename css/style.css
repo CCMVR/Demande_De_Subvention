@@ -677,3 +677,112 @@ h3 {
         display: none;
     }
 }
+
+/* Admin Config Management */
+.config-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+.config-sidebar {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid #e2e8f0;
+}
+.config-list {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.config-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.config-item:hover {
+    border-color: var(--primary-color);
+}
+.config-item.active {
+    background: #fff1f2;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.axe-code {
+    background: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 12px;
+}
+.axe-label {
+    flex: 1;
+    font-weight: 500;
+}
+.btn-delete {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 5px;
+}
+.btn-delete:hover {
+    color: #ef4444;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+.metric-config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px !important;
+}
+.metric-main {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.type-tag {
+    font-size: 0.7rem;
+    background: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+    text-transform: uppercase;
+}
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #94a3b8;
+    background: #f8fafc;
+    border: 2px dashed #e2e8f0;
+    border-radius: var(--radius);
+}
+.empty-state i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+.add-metric-box {
+    margin-top: 30px;
+    background: #f1f5f9 !important;
+}
+.add-metric-box h5 {
+    margin-bottom: 15px;
+}
