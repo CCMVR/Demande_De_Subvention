@@ -38,8 +38,23 @@ const FORM = {
                 if (draft) {
                     const full = await DB.getFullApplication(draft.id);
                     if (full && full.id) {
-                        this.data = full;
-                        console.log("Form: Loaded draft", full.id);
+                        // NORMALIZE DATA STRUCTURE
+                        this.data.application = { ...full };
+                        this.data.financials = full.financials || [];
+                        
+                        // Convert metrics array to object
+                        this.data.metrics = {};
+                        if (Array.isArray(full.metrics)) {
+                            full.metrics.forEach(m => {
+                                this.data.metrics[m.metric_key] = m.value;
+                            });
+                        }
+
+                        // Clean up the application object
+                        delete this.data.application.financials;
+                        delete this.data.application.metrics;
+                        
+                        console.log("Form: Loaded draft and normalized structure", full.id);
                     }
                 }
             }
@@ -242,7 +257,9 @@ const FORM = {
                 <div class="axes-selection">
                     ${axes.map(axe => `
                         <label class="axe-option">
-                            <input type="radio" name="axe" value="${axe.code}" ${this.data.application.selected_axe === axe.code ? 'checked' : ''}>
+                            <input type="radio" name="axe" value="${axe.code}" 
+                                ${this.data.application.selected_axe === axe.code ? 'checked' : ''} 
+                                onchange="FORM.data.application.selected_axe = this.value">
                             <div class="axe-info">
                                 <strong>${axe.principal}</strong>
                                 <span>${axe.secondary || ''}</span>
@@ -484,16 +501,16 @@ const FORM = {
         UI.toggleLoader(true);
         try {
             // 1. Save or Update Application
-            const app = {
-                ...this.data.application,
-                association_id: STATE.association.id
-            };
+            const appToSave = { ...this.data.application };
+            delete appToSave.financials;
+            delete appToSave.metrics;
+            appToSave.association_id = STATE.association.id;
             
             let res;
-            if (this.data.application.id) {
-                res = await sb.from('grant_applications').update(app).eq('id', this.data.application.id).select().single();
+            if (appToSave.id) {
+                res = await sb.from('grant_applications').update(appToSave).eq('id', appToSave.id).select().single();
             } else {
-                res = await sb.from('grant_applications').insert([app]).select().single();
+                res = await sb.from('grant_applications').insert([appToSave]).select().single();
                 this.data.application.id = res.data.id;
             }
 
