@@ -23,6 +23,7 @@ const PDF = {
                 <h2 style="background: #f1f5f9; padding: 10px; font-size: 18px;">1. IDENTITÉ DE L'ASSOCIATION</h2>
                 <p><strong>Nom :</strong> ${data.association?.name || 'N/A'}</p>
                 <p><strong>SIRET :</strong> ${data.association?.siret || 'N/A'}</p>
+                <p><strong>Déclarant :</strong> ${data.application.declarant_name || 'N/A'}</p>
                 <p><strong>Montant demandé :</strong> ${data.application.total_requested} €</p>
                 <p><strong>Axe choisi :</strong> ${data.application.selected_axe || 'N/A'}</p>
             </section>
@@ -31,11 +32,12 @@ const PDF = {
         const generateTableHtml = (type) => {
             const title = type === 'expense' ? 'DÉPENSES (Charges)' : 'RECETTES (Produits)';
             const rows = data.financials.filter(f => f.type === type);
+            if (rows.length === 0) return '';
             const groups = [...new Set(rows.map(r => r.group))];
 
             return `
-                <h3 style="color: #721c24; border-bottom: 1px solid #ddd; padding-bottom: 5px;">${title}</h3>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px;">
+                <h3 style="color: #721c24; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px;">${title}</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 9px;">
                     <tr style="background: #f8fafc;">
                         <th style="padding: 5px; text-align: left; border: 1px solid #ddd;">Libellé</th>
                         <th style="padding: 5px; text-align: right; border: 1px solid #ddd;">BP 2026</th>
@@ -49,16 +51,16 @@ const PDF = {
                         return `
                             ${gRows.map(r => `
                                 <tr>
-                                    <td style="padding: 5px; border: 1px solid #ddd;">${r.label}</td>
-                                    <td style="padding: 5px; text-align: right; border: 1px solid #ddd;">${r.bp_year} €</td>
-                                    <td style="padding: 5px; text-align: right; border: 1px solid #ddd;">${r.cr_n1} €</td>
-                                    <td style="padding: 5px; text-align: right; border: 1px solid #ddd;">${r.cr_n2} €</td>
-                                    <td style="padding: 5px; text-align: right; border: 1px solid #ddd;">${r.cr_n3} €</td>
+                                    <td style="padding: 4px; border: 1px solid #ddd;">${r.label}</td>
+                                    <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${r.bp_year} €</td>
+                                    <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${r.cr_n1} €</td>
+                                    <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${r.cr_n2} €</td>
+                                    <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${r.cr_n3} €</td>
                                 </tr>
                             `).join('')}
                             <tr style="background: #f1f5f9; font-weight: bold;">
-                                <td style="padding: 5px; border: 1px solid #ddd;">Sous-total ${g}</td>
-                                <td style="padding: 5px; text-align: right; border: 1px solid #ddd;">${subBp} €</td>
+                                <td style="padding: 4px; border: 1px solid #ddd;">Sous-total ${g}</td>
+                                <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${subBp} €</td>
                                 <td colspan="3" style="border: 1px solid #ddd;"></td>
                             </tr>
                         `;
@@ -67,20 +69,45 @@ const PDF = {
             `;
         };
 
+        const generateBilanHtml = () => {
+            const rows = data.financials.filter(f => f.type === 'bilan');
+            if (rows.length === 0) return '';
+            return `
+                <h3 style="color: #475569; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 30px;">BILAN DE L'ASSOCIATION</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+                    <tr style="background: #475569; color: white;">
+                        <th style="padding: 5px; text-align: left; border: 1px solid #ddd;">Indicateur</th>
+                        <th style="padding: 5px; text-align: right; border: 1px solid #ddd;">CR 2025</th>
+                        <th style="padding: 5px; text-align: right; border: 1px solid #ddd;">CR 2024</th>
+                        <th style="padding: 5px; text-align: right; border: 1px solid #ddd;">CR 2023</th>
+                    </tr>
+                    ${rows.map(r => `
+                        <tr style="${r.label.startsWith('TOTAL') ? 'background:#f1f5f9; font-weight:bold;' : ''}">
+                            <td style="padding: 4px; border: 1px solid #ddd;">${r.label}</td>
+                            <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${r.cr_n1} €</td>
+                            <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${r.cr_n2} €</td>
+                            <td style="padding: 4px; text-align: right; border: 1px solid #ddd;">${r.cr_n3} €</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+        }
+
         const financialHtml = `
             <section style="margin-bottom: 30px; page-break-inside: auto;">
-                <h2 style="background: #f1f5f9; padding: 10px; font-size: 18px;">2. DONNÉES COMPTABLES PAR AXE</h2>
+                <h2 style="background: #f1f5f9; padding: 10px; font-size: 18px;">2. DONNÉES COMPTABLES</h2>
                 ${generateTableHtml('expense')}
                 ${generateTableHtml('revenue')}
+                ${generateBilanHtml()}
             </section>
         `;
 
         const declarationsHtml = `
             <section style="margin-bottom: 30px;">
                 <h2 style="background: #f1f5f9; padding: 10px; font-size: 18px;">3. DÉCLARATIONS SUR L'HONNEUR</h2>
+                <p>Je soussigné <strong>${data.application.declarant_name || '...'}</strong> certifie exact l'ensemble des éléments.</p>
                 <p>✔ L'association est à jour de ses obligations administratives, comptables, sociales et fiscales.</p>
                 <p>✔ L'association souscrit au contrat d'engagement républicain.</p>
-                <p>✔ Certifié exact par le représentant légal.</p>
                 <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 10px; font-style: italic; text-align: right;">
                     Document généré numériquement le ${new Date().toLocaleString()}<br>
                     ID Demande : ${data.application.id}

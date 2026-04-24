@@ -78,10 +78,34 @@ const EXCEL_MAPPING = {
         { code: '78', group: 'R6', label: "Reprise sur Amortis. et provisions" },
         { code: '79', group: 'R7', label: "Transfert de charges" },
 
-        // BILAN (S)
-        { code: 'TRESO', group: 'S1', label: "Trésorerie disponible (Actif)" },
-        { code: 'DETTES', group: 'S2', label: "Dettes (Passif)" },
-        { code: 'RESULTAT', group: 'S3', label: "Résultat de l'exercice" },
-        { code: 'RESERVES', group: 'S4', label: "Report à nouveau / Réserves" }
+        // BILAN (B) - ACTIF
+        { code: 'B_ACTIF_IMMO', group: 'B1', label: "TOTAL ACTIF IMMOBILISE" },
+        { code: 'B_ACTIF_CIRC', group: 'B2', label: "TOTAL ACTIF CIRCULANT" },
+        { code: 'B_ACTIF_CREANCES', group: 'B2', label: "Créances clients, usagers et comptes rattachés" },
+        { code: 'B_ACTIF_DISPO', group: 'B2', label: "Disponibilités" },
+        { code: 'B_ACTIF_STOCK', group: 'B2', label: "Stock" },
+        { code: 'B_ACTIF_VMP', group: 'B2', label: "Valeur mobilière de placement" },
+        { code: 'B_ACTIF_CCA', group: 'B2', label: "Charges constatées d'avance" },
+        { code: 'B_ACTIF_OTHER', group: 'B2', label: "Autres (Actif)" },
+        { code: 'B_ACTIF_TOTAL', group: 'B3', label: "TOTAL GENERAL ACTIF" },
+        
+        // BILAN (B) - PASSIF
+        { code: 'B_PASSIF_FP', group: 'B4', label: "TOTAL FONDS PROPRES" },
+        { code: 'B_PASSIF_FONDS', group: 'B4', label: "Fonds associatifs (sans droit de reprise)" },
+        { code: 'B_PASSIF_RESERVES', group: 'B4', label: "Réserves" },
+        { code: 'B_PASSIF_RAN', group: 'B4', label: "Report à nouveau" },
+        { code: 'B_PASSIF_RESULTAT', group: 'B4', label: "Résultat de l'exercice" },
+        { code: 'B_PASSIF_SUBV', group: 'B4', label: "Subventions d'investissement" },
+        { code: 'B_PASSIF_OTHER_FP', group: 'B4', label: "Autres (Fonds propres)" },
+        { code: 'B_PASSIF_DEDIES', group: 'B5', label: "TOTAL FONDS DEDIES" },
+        { code: 'B_PASSIF_PROV', group: 'B6', label: "TOTAL PROVISIONS" },
+        { code: 'B_PASSIF_DETTES', group: 'B7', label: "TOTAL DETTES" },
+        { code: 'B_PASSIF_D1Y', group: 'B7', label: "Dettes à plus d'un an" },
+        { code: 'B_PASSIF_D0Y', group: 'B7', label: "Dettes à moins d'un an" },
+        { code: 'B_PASSIF_D_FOURN', group: 'B7', label: "Dettes fournisseurs, fiscales et sociales" },
+        { code: 'B_PASSIF_PCA', group: 'B7', label: "Produits constatés d'avance" },
+        { code: 'B_PASSIF_OTHER_D', group: 'B7', label: "Autres (Dettes)" },
+        { code: 'B_PASSIF_TOTAL', group: 'B8', label: "TOTAL GENERAL PASSIF" },
+        { code: 'B_DIFF', group: 'B9', label: "DIFFERENCE ACTIF - PASSIF" }
     ]
 };

@@ -40,7 +40,19 @@ const FORM = {
                     if (full && full.id) {
                         // NORMALIZE DATA STRUCTURE
                         this.data.application = { ...full };
-                        this.data.financials = full.financials || [];
+                        
+                        // MERGE Database Financials with Defaults (to support newly added indicators)
+                        if (Array.isArray(full.financials)) {
+                            full.financials.forEach(dbRow => {
+                                const localRow = this.data.financials.find(f => f.account_code === dbRow.account_code);
+                                if (localRow) {
+                                    localRow.bp_year = parseFloat(dbRow.bp_year) || 0;
+                                    localRow.cr_n1 = parseFloat(dbRow.cr_n1) || 0;
+                                    localRow.cr_n2 = parseFloat(dbRow.cr_n2) || 0;
+                                    localRow.cr_n3 = parseFloat(dbRow.cr_n3) || 0;
+                                }
+                            });
+                        }
                         
                         // Convert metrics array to object
                         this.data.metrics = {};
@@ -101,7 +113,7 @@ const FORM = {
         this.data.financials = accounts.map(acc => ({
             account_code: acc.code,
             label: acc.label,
-            type: acc.code.startsWith('6') || acc.group.startsWith('G') ? 'expense' : 'revenue',
+            type: acc.type || (acc.code.startsWith('6') || (acc.group && acc.group.startsWith('G')) ? 'expense' : 'revenue'),
             group: acc.group,
             bp_year: 0, cr_n1: 0, cr_n2: 0, cr_n3: 0,
             isOther: acc.isOther || false,
@@ -206,9 +218,8 @@ const FORM = {
                         <input type="email" id="f-email" value="${assoc.contact_email || ''}">
                     </div>
                     <div class="input-group highlight">
-                        <label>Subvention demandée (€)</label>
-                        <input type="number" id="f-requested" value="${this.data.application.total_requested || 0}">
-                        <small>Ce montant sera reporté automatiquement à la ligne 74 (Recettes).</small>
+                        <label>Nom et prénom du déclarant</label>
+                        <input type="text" id="f-declarant" value="${this.data.application.declarant_name || ''}" placeholder="Ex: Jean DUPONT">
                     </div>
                 </div>
                 <div class="form-actions">
@@ -302,15 +313,10 @@ const FORM = {
                                 const groupRows = allRows.filter(r => r.group === groupCode);
                                 return `
                                     ${groupRows.map(row => `
-                                        <tr class="${row.isReadOnly ? 'readonly-row' : ''} ${row.isOther ? 'other-row' : ''}">
+                                        <tr class="${row.isReadOnly ? 'readonly-row' : ''} ${row.group.startsWith('B') ? 'bilan-row' : ''}">
                                             <td>${row.account_code}</td>
-                                            <td>
-                                                ${row.isOther 
-                                                    ? `<input type="text" class="calc-label" data-code="${row.account_code}" value="${row.label}" placeholder="Précisez ici...">`
-                                                    : row.label
-                                                }
-                                            </td>
-                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="bp_year" value="${row.bp_year || 0}" ${row.isReadOnly ? 'readonly' : ''}></td>
+                                            <td>${row.label}</td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="bp_year" value="${row.bp_year || 0}"></td>
                                             <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1 || 0}"></td>
                                             <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2 || 0}"></td>
                                             <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n3" value="${row.cr_n3 || 0}"></td>
@@ -347,55 +353,30 @@ const FORM = {
     },
 
     tplBilan() {
+        const rows = this.data.financials.filter(f => f.account_code.startsWith('B_'));
         return `
             <div class="form-step wide">
-                <h3>Bilan Simplifié de l'association</h3>
-                <p class="help-text">Informations générales sur la santé financière de la structure.</p>
+                <h3>Bilan Simplifié de l'association (Actif / Passif)</h3>
+                <p class="help-text">Renseignez les montants pour les 3 dernières années. Les totaux doivent s'équilibrer.</p>
                 <div class="table-responsive">
-                    <table>
+                    <table class="bilan-table">
                         <thead>
-                            <tr>
-                                <th>Indicateur</th>
-                                <th>2026 (Est.)</th>
+                            <tr class="header-row">
+                                <th style="text-align:left">Indicateur</th>
                                 <th>2025 (N-1)</th>
                                 <th>2024 (N-2)</th>
                                 <th>2023 (N-3)</th>
-                                <th>Evol. %</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Trésorerie disponible (Actif)</td>
-                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="bp_year" value="${this.getFinVal('TRESO', 'bp_year')}"></td>
-                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="cr_n1" value="${this.getFinVal('TRESO', 'cr_n1')}"></td>
-                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="cr_n2" value="${this.getFinVal('TRESO', 'cr_n2')}"></td>
-                                <td><input type="number" class="calc-input" data-code="TRESO" data-field="cr_n3" value="${this.getFinVal('TRESO', 'cr_n3')}"></td>
-                                <td class="readonly-cell row-evol" data-code="TRESO">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('TRESO', 'bp_year'), this.getFinVal('TRESO', 'cr_n1')) : 0}%</td>
-                            </tr>
-                            <tr>
-                                <td>Dettes (Passif)</td>
-                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="bp_year" value="${this.getFinVal('DETTES', 'bp_year')}"></td>
-                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="cr_n1" value="${this.getFinVal('DETTES', 'cr_n1')}"></td>
-                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="cr_n2" value="${this.getFinVal('DETTES', 'cr_n2')}"></td>
-                                <td><input type="number" class="calc-input" data-code="DETTES" data-field="cr_n3" value="${this.getFinVal('DETTES', 'cr_n3')}"></td>
-                                <td class="readonly-cell row-evol" data-code="DETTES">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('DETTES', 'bp_year'), this.getFinVal('DETTES', 'cr_n1')) : 0}%</td>
-                            </tr>
-                            <tr>
-                                <td>Résultat de l'exercice</td>
-                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="bp_year" value="${this.getFinVal('RESULTAT', 'bp_year')}"></td>
-                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="cr_n1" value="${this.getFinVal('RESULTAT', 'cr_n1')}"></td>
-                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="cr_n2" value="${this.getFinVal('RESULTAT', 'cr_n2')}"></td>
-                                <td><input type="number" class="calc-input" data-code="RESULTAT" data-field="cr_n3" value="${this.getFinVal('RESULTAT', 'cr_n3')}"></td>
-                                <td class="readonly-cell row-evol" data-code="RESULTAT">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('RESULTAT', 'bp_year'), this.getFinVal('RESULTAT', 'cr_n1')) : 0}%</td>
-                            </tr>
-                            <tr>
-                                <td>Report à nouveau / Réserves</td>
-                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="bp_year" value="${this.getFinVal('RESERVES', 'bp_year')}"></td>
-                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="cr_n1" value="${this.getFinVal('RESERVES', 'cr_n1')}"></td>
-                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="cr_n2" value="${this.getFinVal('RESERVES', 'cr_n2')}"></td>
-                                <td><input type="number" class="calc-input" data-code="RESERVES" data-field="cr_n3" value="${this.getFinVal('RESERVES', 'cr_n3')}"></td>
-                                <td class="readonly-cell row-evol" data-code="RESERVES">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(this.getFinVal('RESERVES', 'bp_year'), this.getFinVal('RESERVES', 'cr_n1')) : 0}%</td>
-                            </tr>
+                            ${rows.map(row => `
+                                <tr class="${row.label.startsWith('TOTAL') ? 'total-row' : ''} ${row.code === 'B_DIFF' ? 'diff-row' : ''}">
+                                    <td style="text-align:left">${row.label}</td>
+                                    <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1 || 0}"></td>
+                                    <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2 || 0}"></td>
+                                    <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n3" value="${row.cr_n3 || 0}"></td>
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -410,17 +391,23 @@ const FORM = {
     getFinVal(code, field) {
         if (!this.data.financials) return 0;
         const row = this.data.financials.find(f => f.account_code === code);
-        return row ? (row[field] || 0) : 0;
+        return row ? (parseFloat(row[field]) || 0) : 0;
     },
 
     tplDeclarations() {
+        const subvention = this.getFinVal('74', 'bp_year') || 0;
         return `
             <div class="form-step">
                 <h3>Déclarations et Signature</h3>
-                <div class="info-box">
-                    <p>En cochant ces cases, vous certifiez sur l'honneur l'exactitude des informations fournies.</p>
+                <div class="info-box highlight-box">
+                    <p><strong>Récapitulatif de votre demande :</strong></p>
+                    <p style="font-size: 1.2rem; margin: 10px 0;">Montant de subvention sollicité : <span style="color: var(--primary-color); font-weight: bold;">${subvention.toLocaleString()} €</span></p>
                 </div>
                 <div class="declarations-list">
+                    <label class="check-item luxe">
+                        <input type="checkbox" id="check-confirm-amount" required>
+                        <span>Je confirme que le montant de subvention demandé pour l'axe sélectionné est de ${subvention.toLocaleString()} €.</span>
+                    </label>
                     <label class="check-item luxe">
                         <input type="checkbox" id="decl-1" required>
                         <div class="check-text">
@@ -452,19 +439,6 @@ const FORM = {
     },
 
     bindEvents() {
-        // Sync requested amount from Identity step
-        const requestedInput = document.getElementById('f-requested');
-        if (requestedInput) {
-            requestedInput.addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value) || 0;
-                this.data.application.total_requested = val;
-                
-                // Propagate to financials (account 74: Subvention demandée)
-                const rec = this.data.financials.find(f => f.account_code === '74');
-                if (rec) rec.bp_year = val;
-            });
-        }
-
         // Sync financial inputs to local data and trigger totals
         document.querySelectorAll('.calc-input').forEach(input => {
             input.addEventListener('input', (e) => {
@@ -501,28 +475,78 @@ const FORM = {
         });
 
         // Initialize totals on load
-        if (this.currentStep === 6 || this.currentStep === 7) {
+        if (this.currentStep === 6 || this.currentStep === 7 || this.currentStep === 8) {
             this.updateStepTotals();
         }
     },
 
     updateStepTotals() {
+        if (this.currentStep === 8) {
+            // Specialized Bilan Logic (Calculated Rows)
+            ['cr_n1', 'cr_n2', 'cr_n3'].forEach(year => {
+                const getVal = (code) => this.getFinVal(code, year);
+                const setVal = (code, val) => {
+                    const rec = this.data.financials.find(f => f.account_code === code);
+                    if (rec) rec[year] = val;
+                };
+
+                // Actif Circulant
+                const actifCirculant = getVal('B_ACTIF_CREANCES') + getVal('B_ACTIF_DISPO') + getVal('B_ACTIF_STOCK') + getVal('B_ACTIF_VMP') + getVal('B_ACTIF_CCA') + getVal('B_ACTIF_OTHER');
+                setVal('B_ACTIF_CIRC', actifCirculant);
+
+                // Total Actif
+                const totalActif = getVal('B_ACTIF_IMMO') + actifCirculant;
+                setVal('B_ACTIF_TOTAL', totalActif);
+
+                // Fonds Propres
+                const fondsPropres = getVal('B_PASSIF_FONDS') + getVal('B_PASSIF_RESERVES') + getVal('B_PASSIF_RAN') + getVal('B_PASSIF_RESULTAT') + getVal('B_PASSIF_SUBV') + getVal('B_PASSIF_OTHER_FP');
+                setVal('B_PASSIF_FP', fondsPropres);
+
+                // Total Dettes
+                const totalDettes = getVal('B_PASSIF_D1Y') + getVal('B_PASSIF_D0Y') + getVal('B_PASSIF_D_FOURN') + getVal('B_PASSIF_PCA') + getVal('B_PASSIF_OTHER_D');
+                setVal('B_PASSIF_DETTES', totalDettes);
+
+                // Total Passif
+                const totalPassif = fondsPropres + getVal('B_PASSIF_DEDIES') + getVal('B_PASSIF_PROV') + totalDettes;
+                setVal('B_PASSIF_TOTAL', totalPassif);
+
+                // Diff
+                setVal('B_DIFF', totalActif - totalPassif);
+            });
+
+            // Update DOM
+            this.data.financials.filter(f => f.account_code.startsWith('B_')).forEach(row => {
+                ['cr_n1', 'cr_n2', 'cr_n3'].forEach(year => {
+                    const inputs = document.querySelectorAll(`.calc-input[data-code="${row.account_code}"][data-field="${year}"]`);
+                    inputs.forEach(input => {
+                        input.value = row[year];
+                        if (row.label.startsWith('TOTAL') || row.account_code === 'B_DIFF') {
+                            input.readOnly = true;
+                            input.style.fontWeight = 'bold';
+                        }
+                    });
+                });
+            });
+            return;
+        }
+
         const type = this.currentStep === 6 ? 'expense' : 'revenue';
         const allRows = this.data.financials.filter(f => f.type === type);
         
         // 1. Update Group Sub-totals
         const groups = [...new Set(allRows.map(r => r.group))];
         groups.forEach(g => {
+            if (!g) return;
             const gRows = allRows.filter(r => r.group === g);
             const bp = gRows.reduce((s, r) => s + (parseFloat(r.bp_year) || 0), 0);
             const n1 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n1) || 0), 0);
             const n2 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n2) || 0), 0);
             const n3 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n3) || 0), 0);
-            
-            document.querySelectorAll(`.st-bp[data-group="${g}"]`).forEach(el => el.textContent = bp.toLocaleString());
-            document.querySelectorAll(`.st-n1[data-group="${g}"]`).forEach(el => el.textContent = n1.toLocaleString());
-            document.querySelectorAll(`.st-n2[data-group="${g}"]`).forEach(el => el.textContent = n2.toLocaleString());
-            document.querySelectorAll(`.st-n3[data-group="${g}"]`).forEach(el => el.textContent = n3.toLocaleString());
+
+            document.querySelectorAll(`.st-bp[data-group="${g}"]`).forEach(el => el.textContent = bp.toLocaleString() + ' €');
+            document.querySelectorAll(`.st-n1[data-group="${g}"]`).forEach(el => el.textContent = n1.toLocaleString() + ' €');
+            document.querySelectorAll(`.st-n2[data-group="${g}"]`).forEach(el => el.textContent = n2.toLocaleString() + ' €');
+            document.querySelectorAll(`.st-n3[data-group="${g}"]`).forEach(el => el.textContent = n3.toLocaleString() + ' €');
             
             const evol = (window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(bp, n1) : 0;
             document.querySelectorAll(`.st-evol[data-group="${g}"]`).forEach(el => el.textContent = evol + '%');
@@ -559,6 +583,11 @@ const FORM = {
 
         UI.toggleLoader(true);
         try {
+            // 0. Update Application object from UI if needed
+            if (this.currentStep === 3) {
+                this.data.application.declarant_name = document.getElementById('f-declarant').value;
+            }
+
             // 1. Save or Update Application
             const appToSave = { ...this.data.application };
             delete appToSave.financials;
@@ -577,12 +606,19 @@ const FORM = {
 
             // 2. Save Financials (Batch & Sanitize)
             if (this.currentStep === 6 || this.currentStep === 7 || this.currentStep === 8) {
+                // Sync Subvention from Account 74 if step 7
+                if (this.currentStep === 7) {
+                    const subvRow = this.data.financials.find(f => f.account_code === '74');
+                    if (subvRow) {
+                        this.data.application.total_requested = parseFloat(subvRow.bp_year) || 0;
+                        await sb.from('grant_applications').update({ total_requested: this.data.application.total_requested }).eq('id', this.data.application.id);
+                    }
+                }
+
                 const finData = this.data.financials.map(f => ({
                     application_id: this.data.application.id,
                     account_code: f.account_code,
-                    type: f.type,
-                    label: f.label,
-                    group: f.group,
+                    // DO NOT SEND 'group', 'label', 'type' if they are not in the DB schema
                     bp_year: parseFloat(f.bp_year) || 0,
                     cr_n1: parseFloat(f.cr_n1) || 0,
                     cr_n2: parseFloat(f.cr_n2) || 0,
@@ -605,6 +641,14 @@ const FORM = {
     },
 
     async submitApplication() {
+        // Check checkboxes
+        const checks = document.querySelectorAll('.declarations-list input[type="checkbox"][required]');
+        const allChecked = Array.from(checks).every(c => c.checked);
+        
+        if (!allChecked) {
+            return UI.notify("Veuillez cocher toutes les cases de déclaration pour soumettre.", "error");
+        }
+
         if (!confirm("Voulez-vous vraiment soumettre votre demande ? Elle ne sera plus modifiable.")) return;
 
         UI.toggleLoader(true);
