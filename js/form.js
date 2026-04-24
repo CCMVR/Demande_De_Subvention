@@ -313,35 +313,29 @@ const FORM = {
                                 const groupRows = allRows.filter(r => r.group === groupCode);
                                 return `
                                     ${groupRows.map(row => `
-                                        <tr class="${row.isReadOnly ? 'readonly-row' : ''} ${row.group.startsWith('B') ? 'bilan-row' : ''}">
-                                            <td>${row.account_code}</td>
+                                        <tr class="${row.isReadOnly ? 'readonly-row' : ''} ${row.group.startsWith('B') ? 'bilan-row' : ''} ${row.account_code.startsWith('TOTAL_') ? 'group-header' : ''}">
+                                            <td>${row.account_code.startsWith('TOTAL_') ? '' : row.account_code}</td>
                                             <td>${row.label}</td>
-                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="bp_year" value="${row.bp_year || 0}"></td>
-                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1 || 0}"></td>
-                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2 || 0}"></td>
-                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n3" value="${row.cr_n3 || 0}"></td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-group="${groupCode}" data-field="bp_year" value="${row.bp_year || 0}"></td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-group="${groupCode}" data-field="cr_n1" value="${row.cr_n1 || 0}"></td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-group="${groupCode}" data-field="cr_n2" value="${row.cr_n2 || 0}"></td>
+                                            <td><input type="number" class="calc-input" data-code="${row.account_code}" data-group="${groupCode}" data-field="cr_n3" value="${row.cr_n3 || 0}"></td>
                                             <td class="readonly-cell row-evol" data-code="${row.account_code}">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(row.bp_year, row.cr_n1) : 0}%</td>
                                         </tr>
                                     `).join('')}
-                                    <tr class="subtotal-row">
-                                        <td colspan="2">Sous-total ${groupCode}</td>
-                                        <td class="st-bp" data-group="${groupCode}">0</td>
-                                        <td class="st-n1" data-group="${groupCode}">0</td>
-                                        <td class="st-n2" data-group="${groupCode}">0</td>
-                                        <td class="st-n3" data-group="${groupCode}">0</td>
-                                        <td class="st-evol" data-group="${groupCode}">0%</td>
-                                    </tr>
                                 `;
                             }).join('')}
+                        </tbody>
+                        <tfoot>
                             <tr class="total-row">
-                                <td colspan="2">TOTAL GÉNÉRAL ${title}</td>
-                                <td id="total-bp">0</td>
-                                <td id="total-n1">0</td>
-                                <td id="total-n2">0</td>
-                                <td id="total-n3">0</td>
+                                <td colspan="2">TOTAL GÉNÉRAL</td>
+                                <td id="total-bp">0 €</td>
+                                <td id="total-n1">0 €</td>
+                                <td id="total-n2">0 €</td>
+                                <td id="total-n3">0 €</td>
                                 <td id="total-evol">0%</td>
                             </tr>
-                        </tbody>
+                        </tfoot>
                     </table>
                 </div>
                 <div class="form-actions">
@@ -370,7 +364,7 @@ const FORM = {
                         </thead>
                         <tbody>
                             ${rows.map(row => `
-                                <tr class="${row.label.startsWith('TOTAL') ? 'total-row' : ''} ${row.code === 'B_DIFF' ? 'diff-row' : ''}">
+                                <tr class="${row.label.startsWith('TOTAL') ? 'total-row' : ''} ${row.code === 'B_DIFF' ? 'diff-row' : ''} ${row.account_code.includes('ACTIF') ? 'actif-row' : 'passif-row'}">
                                     <td style="text-align:left">${row.label}</td>
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1 || 0}"></td>
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2 || 0}"></td>
@@ -520,8 +514,9 @@ const FORM = {
                     const inputs = document.querySelectorAll(`.calc-input[data-code="${row.account_code}"][data-field="${year}"]`);
                     inputs.forEach(input => {
                         input.value = row[year];
+                        // User wants to be able to modify totals if needed
+                        input.readOnly = false;
                         if (row.label.startsWith('TOTAL') || row.account_code === 'B_DIFF') {
-                            input.readOnly = true;
                             input.style.fontWeight = 'bold';
                         }
                     });
@@ -533,36 +528,59 @@ const FORM = {
         const type = this.currentStep === 6 ? 'expense' : 'revenue';
         const allRows = this.data.financials.filter(f => f.type === type);
         
-        // 1. Update Group Sub-totals
+        // 1. Update Group Sub-totals (Smart Headers)
         const groups = [...new Set(allRows.map(r => r.group))];
         groups.forEach(g => {
             if (!g) return;
             const gRows = allRows.filter(r => r.group === g);
-            const bp = gRows.reduce((s, r) => s + (parseFloat(r.bp_year) || 0), 0);
-            const n1 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n1) || 0), 0);
-            const n2 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n2) || 0), 0);
-            const n3 = gRows.reduce((s, r) => s + (parseFloat(r.cr_n3) || 0), 0);
+            const headerRow = gRows.find(r => r.account_code.startsWith('TOTAL_'));
+            const detailRows = gRows.filter(r => !r.account_code.startsWith('TOTAL_'));
 
-            document.querySelectorAll(`.st-bp[data-group="${g}"]`).forEach(el => el.textContent = bp.toLocaleString() + ' €');
-            document.querySelectorAll(`.st-n1[data-group="${g}"]`).forEach(el => el.textContent = n1.toLocaleString() + ' €');
-            document.querySelectorAll(`.st-n2[data-group="${g}"]`).forEach(el => el.textContent = n2.toLocaleString() + ' €');
-            document.querySelectorAll(`.st-n3[data-group="${g}"]`).forEach(el => el.textContent = n3.toLocaleString() + ' €');
+            // Only auto-sum if there are detail rows with values
+            const hasDetails = detailRows.some(r => (parseFloat(r.bp_year) || 0) !== 0 || (parseFloat(r.cr_n1) || 0) !== 0);
             
-            const evol = (window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(bp, n1) : 0;
-            document.querySelectorAll(`.st-evol[data-group="${g}"]`).forEach(el => el.textContent = evol + '%');
+            if (hasDetails && headerRow) {
+                headerRow.bp_year = detailRows.reduce((s, r) => s + (parseFloat(r.bp_year) || 0), 0);
+                headerRow.cr_n1 = detailRows.reduce((s, r) => s + (parseFloat(r.cr_n1) || 0), 0);
+                headerRow.cr_n2 = detailRows.reduce((s, r) => s + (parseFloat(r.cr_n2) || 0), 0);
+                headerRow.cr_n3 = detailRows.reduce((s, r) => s + (parseFloat(r.cr_n3) || 0), 0);
+
+                // Update Header Inputs in DOM
+                ['bp_year', 'cr_n1', 'cr_n2', 'cr_n3'].forEach(f => {
+                    const input = document.querySelector(`.calc-input[data-code="${headerRow.account_code}"][data-field="${f}"]`);
+                    if (input) input.value = headerRow[f];
+                });
+            }
         });
 
-        // 1.5 Update Row Evolutions
-        allRows.forEach(row => {
-            const evol = (window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(row.bp_year, row.cr_n1) : 0;
-            document.querySelectorAll(`.row-evol[data-code="${row.account_code}"]`).forEach(el => el.textContent = evol + '%');
-        });
-
-        // 2. Update General Totals
-        const bpTotal = allRows.reduce((sum, r) => sum + (parseFloat(r.bp_year) || 0), 0);
-        const n1Total = allRows.reduce((sum, r) => sum + (parseFloat(r.cr_n1) || 0), 0);
-        const n2Total = allRows.reduce((sum, r) => sum + (parseFloat(r.cr_n2) || 0), 0);
-        const n3Total = allRows.reduce((sum, r) => sum + (parseFloat(r.cr_n3) || 0), 0);
+        // 2. Update General Totals (Sum of Header Rows or rows without a header in their group)
+        const bpTotal = groups.reduce((sum, g) => {
+            const gRows = allRows.filter(r => r.group === g);
+            const header = gRows.find(r => r.account_code.startsWith('TOTAL_'));
+            if (header) return sum + (parseFloat(header.bp_year) || 0);
+            return sum + gRows.reduce((s, r) => s + (parseFloat(r.bp_year) || 0), 0);
+        }, 0);
+        
+        const n1Total = groups.reduce((sum, g) => {
+            const gRows = allRows.filter(r => r.group === g);
+            const header = gRows.find(r => r.account_code.startsWith('TOTAL_'));
+            if (header) return sum + (parseFloat(header.cr_n1) || 0);
+            return sum + gRows.reduce((s, r) => s + (parseFloat(r.cr_n1) || 0), 0);
+        }, 0);
+        
+        const n2Total = groups.reduce((sum, g) => {
+            const gRows = allRows.filter(r => r.group === g);
+            const header = gRows.find(r => r.account_code.startsWith('TOTAL_'));
+            if (header) return sum + (parseFloat(header.cr_n2) || 0);
+            return sum + gRows.reduce((s, r) => s + (parseFloat(r.cr_n2) || 0), 0);
+        }, 0);
+        
+        const n3Total = groups.reduce((sum, g) => {
+            const gRows = allRows.filter(r => r.group === g);
+            const header = gRows.find(r => r.account_code.startsWith('TOTAL_'));
+            if (header) return sum + (parseFloat(header.cr_n3) || 0);
+            return sum + gRows.reduce((s, r) => s + (parseFloat(r.cr_n3) || 0), 0);
+        }, 0);
 
         if (document.getElementById('total-bp')) document.getElementById('total-bp').textContent = bpTotal.toLocaleString() + ' €';
         if (document.getElementById('total-n1')) document.getElementById('total-n1').textContent = n1Total.toLocaleString() + ' €';

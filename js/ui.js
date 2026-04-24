@@ -298,10 +298,46 @@ const UI = {
                                 <label>Budget total de fonctionnement (€)</label>
                                 <input type="number" id="p-total-budget" value="${a.total_budget || 0}">
                             </div>
+                            </div>
                             <div class="input-group">
                                 <label>Nombre de salariés (ETP)</label>
                                 <input type="number" id="p-employees" value="${a.employees_count || 0}">
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <h4>Budget Global de l'Association (Historique & Prévisionnel)</h4>
+                        <p class="help-text">Veuillez renseigner les totaux par catégorie pour l'ensemble de votre structure.</p>
+                        <div class="table-responsive">
+                            <table class="financial-table">
+                                <thead>
+                                    <tr>
+                                        <th>Catégorie</th>
+                                        <th>BP 2026</th>
+                                        <th>CR 2025 (N-1)</th>
+                                        <th>CR 2024 (N-2)</th>
+                                        <th>CR 2023 (N-3)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${['G1','G2','G3','G4','G5','G6','G7','R1','R2','R3','R4','R5','R6','R7'].map(g => {
+                                        const configRow = EXCEL_MAPPING.financial_accounts.find(a => a.group === g && a.isReadOnly);
+                                        const label = configRow ? configRow.label : g;
+                                        const history = a.global_budget_history || {};
+                                        const row = history[g] || { bp: 0, n1: 0, n2: 0, n3: 0 };
+                                        return `
+                                            <tr>
+                                                <td style="font-size:0.8rem"><strong>${label}</strong></td>
+                                                <td><input type="number" class="p-budget-input" data-group="${g}" data-field="bp" value="${row.bp}"></td>
+                                                <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n1" value="${row.n1}"></td>
+                                                <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n2" value="${row.n2}"></td>
+                                                <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n3" value="${row.n3}"></td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -321,6 +357,14 @@ const UI = {
             e.preventDefault();
             UI.toggleLoader(true);
             
+            const history = {};
+            document.querySelectorAll('.p-budget-input').forEach(input => {
+                const g = input.dataset.group;
+                const f = input.dataset.field;
+                if (!history[g]) history[g] = { bp: 0, n1: 0, n2: 0, n3: 0 };
+                history[g][f] = parseFloat(input.value) || 0;
+            });
+
             const updatedData = {
                 name: document.getElementById('p-name').value,
                 rna: document.getElementById('p-rna').value,
@@ -334,6 +378,7 @@ const UI = {
                 contact_phone: document.getElementById('p-contact-phone').value,
                 total_budget: parseFloat(document.getElementById('p-total-budget').value) || 0,
                 employees_count: parseFloat(document.getElementById('p-employees').value) || 0,
+                global_budget_history: history,
                 updated_at: new Date().toISOString()
             };
 
