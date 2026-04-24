@@ -376,7 +376,7 @@ const UI = {
         }
         
         if (viewId === 'application') {
-            FORM.renderStep(1);
+            FORM.init().then(() => FORM.renderStep(1));
         }
 
         if (viewId === 'profile') {

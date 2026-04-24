@@ -169,7 +169,6 @@ const AUTH = {
             if (STATE.association) {
                 document.getElementById('org-name').textContent = STATE.association.name;
                 document.getElementById('user-role').textContent = "Association";
-                await FORM.init();
                 UI.switchView('dashboard');
                 return;
             }
