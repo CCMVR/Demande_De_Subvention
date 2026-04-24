@@ -24,12 +24,12 @@ const FORM = {
 
     async init() {
         UI.toggleLoader(true);
+        // RESET DATA TO DEFAULTS IMMEDIATELY
+        this.resetData();
+
         try {
             // Load Dynamic Config from DB
             this.config.axes = await DB.getFormAxes();
-            
-            // RESET DATA TO DEFAULTS
-            this.resetData();
 
             // Load existing draft if any
             if (STATE.association) {
