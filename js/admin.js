@@ -66,7 +66,10 @@ const ADMIN = {
                                 ${axes.map(axe => `
                                     <div class="config-item ${STATE.selectedAxe === axe.code ? 'active' : ''}" onclick="ADMIN.selectAxe('${axe.code}')">
                                         <span class="axe-code">${axe.code}</span>
-                                        <span class="axe-label">${axe.principal}</span>
+                                        <div class="axe-info" style="flex:1">
+                                            <div class="axe-label"><strong>${axe.principal}</strong></div>
+                                            <div class="axe-sub-label" style="font-size:0.8rem; color:#64748b">${axe.secondary || ''}</div>
+                                        </div>
                                         <button class="btn-delete" onclick="event.stopPropagation(); ADMIN.deleteAxe('${axe.code}')">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -75,8 +78,12 @@ const ADMIN = {
                             </div>
                             <div class="mini-form">
                                 <input type="text" id="new-axe-code" placeholder="Code (ex: 5a)">
-                                <input type="text" id="new-axe-label" placeholder="Intitulé de l'axe">
+                                <input type="text" id="new-axe-label" placeholder="Nom principal">
+                                <input type="text" id="new-axe-secondary" placeholder="Sous-nom (optionnel)">
                                 <button class="btn btn-primary btn-sm" onclick="ADMIN.addAxe()">Ajouter l'axe</button>
+                                <button class="btn btn-secondary btn-sm" onclick="ADMIN.loadDefaultAxes()" style="margin-top:10px; width:100%">
+                                    <i class="fas fa-sync"></i> Charger les axes par défaut
+                                </button>
                             </div>
                         </div>
 
@@ -92,12 +99,33 @@ const ADMIN = {
     async addAxe() {
         const code = document.getElementById('new-axe-code').value;
         const label = document.getElementById('new-axe-label').value;
+        const secondary = document.getElementById('new-axe-secondary').value;
         if (!code || !label) return UI.notify("Veuillez remplir le code et le nom.", "error");
 
         UI.toggleLoader(true);
         try {
-            await sb.from('form_axes').insert([{ code, principal: label }]);
+            await sb.from('form_axes').insert([{ 
+                code, 
+                principal: label,
+                secondary: secondary 
+            }]);
             UI.notify("Axe ajouté avec succès.", "success");
+            UI.switchView('admin-dashboard');
+        } catch (err) {
+            UI.notify(err.message, "error");
+        } finally {
+            UI.toggleLoader(false);
+        }
+    },
+
+    async loadDefaultAxes() {
+        if (!confirm("Voulez-vous charger les axes par défaut ? Cela n'écrasera pas vos axes existants.")) return;
+        
+        UI.toggleLoader(true);
+        try {
+            const defaults = EXCEL_MAPPING.axes;
+            await sb.from('form_axes').upsert(defaults, { onConflict: 'code' });
+            UI.notify("Axes par défaut chargés.", "success");
             UI.switchView('admin-dashboard');
         } catch (err) {
             UI.notify(err.message, "error");
