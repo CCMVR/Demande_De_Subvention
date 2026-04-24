@@ -15,6 +15,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Auth Second (starts listener)
     try {
         console.log("Auth init...");
+        
+        // Safety timeout: If after 5s we are still on splash, force show auth
+        const safetyTimer = setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if (splash && !splash.classList.contains('hidden')) {
+                console.warn("Initialization took too long, forcing auth screen.");
+                UI.showAuth();
+            }
+        }, 5000);
+
         await AUTH.init();
         
         console.log("CCMVR Application Ready.");

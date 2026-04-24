@@ -32,6 +32,21 @@ const AUTH = {
             }
         });
 
+        // Manual initial check (don't wait for listener)
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                STATE.user = session.user;
+                await AUTH.loadProfile();
+                UI.showApp();
+            } else {
+                UI.showAuth();
+            }
+        } catch (err) {
+            console.warn("Initial session check failed:", err);
+            UI.showAuth();
+        }
+
         // Initialize UI listeners
         document.getElementById('login-form').addEventListener('submit', AUTH.login);
         document.getElementById('register-form').addEventListener('submit', AUTH.register);
