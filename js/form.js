@@ -92,29 +92,36 @@ const FORM = {
     },
 
     async renderStep(step) {
-        this.currentStep = step;
-        const container = document.getElementById('step-content');
-        
-        document.querySelectorAll('.step-badge').forEach((b, idx) => {
-            b.classList.toggle('active', idx + 1 === step);
-            b.classList.toggle('completed', idx + 1 < step);
-        });
+        try {
+            this.currentStep = step;
+            const container = document.getElementById('step-content');
+            
+            document.querySelectorAll('.step-badge').forEach((b, idx) => {
+                b.classList.toggle('active', idx + 1 === step);
+                b.classList.toggle('completed', idx + 1 < step);
+            });
 
-        let html = '';
-        switch(step) {
-            case 1: html = this.tplNotice(); break;
-            case 2: html = this.tplType(); break;
-            case 3: html = this.tplIdentity(); break;
-            case 4: html = this.tplAxes(); break;
-            case 5: html = await this.tplDetails(); break;
-            case 6: html = this.tplFinancials('expense'); break;
-            case 7: html = this.tplFinancials('revenue'); break;
-            case 8: html = this.tplBilan(); break;
-            case 9: html = this.tplDeclarations(); break;
+            let html = '';
+            switch(step) {
+                case 1: html = this.tplNotice(); break;
+                case 2: html = this.tplType(); break;
+                case 3: html = this.tplIdentity(); break;
+                case 4: html = this.tplAxes(); break;
+                case 5: html = await this.tplDetails(); break;
+                case 6: html = this.tplFinancials('expense'); break;
+                case 7: html = this.tplFinancials('revenue'); break;
+                case 8: html = this.tplBilan(); break;
+                case 9: html = this.tplDeclarations(); break;
+            }
+            
+            if (!html) throw new Error("Le contenu de l'étape est vide.");
+            
+            container.innerHTML = html;
+            this.bindEvents();
+        } catch (err) {
+            console.error("Render Step Error:", err);
+            UI.notify("Erreur lors de l'affichage de l'étape " + step, "error");
         }
-        
-        container.innerHTML = html;
-        this.bindEvents();
     },
 
     tplNotice() {

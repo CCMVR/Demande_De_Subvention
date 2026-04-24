@@ -354,17 +354,9 @@ const UI = {
                 </div>
                 
                 <div id="step-content" class="card">
-                    <h3>Notice - Étape 1</h3>
-                    <div class="notice-content">
-                        <p>Ce fichier est à destination des demandes de subvention de fonctionnement annuelles à la CCMVR uniquement.</p>
-                        <ul>
-                            <li>Veuillez remplir chaque section les unes après les autres.</li>
-                            <li>Les données sont sauvegardées automatiquement à chaque étape.</li>
-                            <li>Une fois soumise, la demande ne peut plus être modifiée.</li>
-                        </ul>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" id="next-step">Suivant</button>
+                    <div class="loader-container" style="padding: 50px; text-align: center;">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 15px; color: var(--primary-color); font-weight: 500;">Chargement de votre dossier...</p>
                     </div>
                 </div>
             </div>
