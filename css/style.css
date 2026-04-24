@@ -458,11 +458,11 @@ h3 {
 }
 
 .expense-row, .actif-row {
-    border-left: 4px solid #10b981;
+    border-left: 4px solid #3b82f6;
 }
 
 .revenue-row, .passif-row {
-    border-left: 4px solid #3b82f6;
+    border-left: 4px solid #10b981;
 }
 
 .total-row {
@@ -475,10 +475,10 @@ h3 {
     color: white;
 }
 
-.actif-row { background-color: #f0fdf4 !important; }
-.passif-row { background-color: #eff6ff !important; }
-.expense-row { background-color: #f0fdf4 !important; }
-.revenue-row { background-color: #eff6ff !important; }
+.actif-row { background-color: #eff6ff !important; }
+.passif-row { background-color: #f0fdf4 !important; }
+.expense-row { background-color: #eff6ff !important; }
+.revenue-row { background-color: #f0fdf4 !important; }
 
 .bilan-row td:first-child {
     background-color: #f8fafc;

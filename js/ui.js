@@ -322,12 +322,13 @@ const UI = {
                                 </thead>
                                 <tbody>
                                     ${['G1','G2','G3','G4','G5','G6','G7','R1','R2','R3','R4','R5','R6','R7'].map(g => {
-                                        const configRow = EXCEL_MAPPING.financial_accounts.find(a => a.group === g && a.isReadOnly);
+                                        const configRow = EXCEL_MAPPING.financial_accounts.find(acc => acc.group === g && acc.account_code.startsWith('TOTAL_'));
                                         const label = configRow ? configRow.label : g;
+                                        const type = g.startsWith('G') ? 'expense' : 'revenue';
                                         const history = a.global_budget_history || {};
                                         const row = history[g] || { bp: 0, n1: 0, n2: 0, n3: 0 };
                                         return `
-                                            <tr>
+                                            <tr class="${type}-row">
                                                 <td style="font-size:0.8rem"><strong>${label}</strong></td>
                                                 <td><input type="number" class="p-budget-input" data-group="${g}" data-field="bp" value="${row.bp}"></td>
                                                 <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n1" value="${row.n1}"></td>
