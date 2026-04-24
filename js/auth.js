@@ -135,22 +135,47 @@ const AUTH = {
 
             console.log("AUTH: Loading profile for", STATE.user.email);
 
-            const profile = await DB.getProfile(STATE.user.id);
+            let profile = null;
+            try {
+                profile = await DB.getProfile(STATE.user.id);
+            } catch (e) {
+                console.warn("AUTH: Profile table fetch failed or empty.");
+            }
+            
             STATE.profile = profile;
             
+            // 1. Try to load via Profile Link
             if (profile && profile.association_id) {
                 STATE.association = await DB.getAssociation(profile.association_id);
-                
-                if (STATE.association) {
-                    document.getElementById('org-name').textContent = STATE.association.name;
-                    document.getElementById('user-role').textContent = "Association";
-                    await FORM.init();
-                    UI.switchView('dashboard');
-                    return;
-                }
             } 
             
-            // If we reach here, it's either an Admin or a user without association
+            // 2. Fallback: If no link, try to find association by user email
+            if (!STATE.association) {
+                console.log("AUTH: Searching association by email fallback...");
+                const results = await sb.from('associations').select('*').eq('contact_email', STATE.user.email);
+                if (results.data && results.data.length > 0) {
+                    STATE.association = results.data[0];
+                    console.log("AUTH: Fallback found association:", STATE.association.name);
+                    
+                    // Repair the profile link in background
+                    if (profile) {
+                        await sb.from('profiles').update({ association_id: STATE.association.id }).eq('id', STATE.user.id);
+                    } else {
+                        await sb.from('profiles').insert([{ id: STATE.user.id, association_id: STATE.association.id }]);
+                    }
+                }
+            }
+
+            // 3. UI Update based on result
+            if (STATE.association) {
+                document.getElementById('org-name').textContent = STATE.association.name;
+                document.getElementById('user-role').textContent = "Association";
+                await FORM.init();
+                UI.switchView('dashboard');
+                return;
+            }
+            
+            // 4. Admin check
             if (STATE.user.email && STATE.user.email.toLowerCase() === CONFIG.AO_EMAIL.toLowerCase()) {
                 document.getElementById('org-name').textContent = "Administration CCMVR";
                 document.getElementById('user-role').textContent = "Admin";
@@ -165,6 +190,8 @@ const AUTH = {
             }
         } catch (err) {
             console.error("Error loading profile", err);
+            document.getElementById('org-name').textContent = "Erreur de chargement";
+            UI.notify("Erreur lors du chargement de votre profil. Réessayez ou contactez l'admin.", "error");
         }
     }
 };
