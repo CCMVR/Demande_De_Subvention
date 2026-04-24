@@ -329,7 +329,7 @@ const FORM = {
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="bp_year" value="${row.bp_year}"></td>
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n1" value="${row.cr_n1}"></td>
                                     <td><input type="number" class="calc-input" data-code="${row.account_code}" data-field="cr_n2" value="${row.cr_n2}"></td>
-                                    <td class="readonly-cell">${UTILS.calculateEvolution(row.bp_year, row.cr_n1)}%</td>
+                                    <td class="readonly-cell">${(window.UTILS && window.UTILS.calculateEvolution) ? UTILS.calculateEvolution(row.bp_year, row.cr_n1) : 0}%</td>
                                 </tr>
                             `).join('')}
                             <tr class="total-row">

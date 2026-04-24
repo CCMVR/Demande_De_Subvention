@@ -1,7 +1,7 @@
 /**
  * Shared utility functions for calculations and formatting
  */
-const UTILS = {
+window.UTILS = {
     calculateEvolution(current, previous) {
         const cur = parseFloat(current) || 0;
         const prev = parseFloat(previous) || 0;
