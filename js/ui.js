@@ -10,6 +10,9 @@ const UI = {
 
         // Apply logo from data file
         UI.applyLogo();
+
+        // Show version info
+        UI.fetchGitHubVersion();
     },
 
     applyLogo() {
@@ -26,6 +29,43 @@ const UI = {
                 container.style.boxShadow = 'none';
                 container.textContent = ''; // Hide the "CCMVR" text
             });
+        }
+    },
+
+    async fetchGitHubVersion() {
+        const versionEl = document.getElementById('github-version');
+        if (!versionEl) return;
+
+        try {
+            // Try to get from CONFIG or auto-detect if on github.io
+            let repo = CONFIG.GITHUB_REPO;
+            
+            if (window.location.hostname.includes('github.io')) {
+                const parts = window.location.hostname.split('.');
+                const owner = parts[0];
+                const repoName = window.location.pathname.split('/')[1] || repo.split('/')[1];
+                repo = `${owner}/${repoName}`;
+            }
+
+            const response = await fetch(`https://api.github.com/repos/${repo}/commits?per_page=1`);
+            if (!response.ok) throw new Error('GitHub API error');
+            
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const date = new Date(data[0].commit.committer.date);
+                const options = { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                };
+                const formattedDate = date.toLocaleString('fr-FR', options);
+                versionEl.textContent = `v. ${formattedDate}`;
+            }
+        } catch (e) {
+            console.warn("Could not fetch version info:", e);
+            versionEl.textContent = "Mode Local / Inconnu";
         }
     },
 
