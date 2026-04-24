@@ -5,7 +5,8 @@ window.UTILS = {
     calculateEvolution(current, previous) {
         const cur = parseFloat(current) || 0;
         const prev = parseFloat(previous) || 0;
-        if (prev === 0) return 0;
+        if (prev === 0 && cur === 0) return "0.0";
+        if (prev === 0) return "100.0";
         return (((cur - prev) / prev) * 100).toFixed(1);
     },
 

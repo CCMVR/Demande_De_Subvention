@@ -45,33 +45,37 @@ const EXCEL_MAPPING = {
     ],
     financial_accounts: [
         // CHARGES (6x)
-        { code: '60212', label: "Fournitures d'atelier ou d'activité" },
-        { code: '60214', label: "Alimentation, boissons" },
-        { code: '60635', label: "Petit équipement" },
-        { code: '611',   label: "Prestation extérieure pour activité" },
-        { code: '6135',  label: "Loyer et charges locatives" },
-        { code: '6135b', label: "Location de matériel" },
-        { code: '6156',  label: "Maintenance informatique" },
-        { code: '621',   label: "Personnel extérieur à la structure" },
-        { code: '622',   label: "Honoraires (hors activité)" },
-        { code: '624',   label: "Transport de biens et personnes" },
-        { code: '63',    label: "Impôts et taxes" },
-        { code: '64',    label: "Charges de personnel" },
-        { code: '65',    label: "Autres charges de gestion courante" },
-        { code: '66',    label: "Charges financières" },
-        { code: '67',    label: "Charges exceptionnelles" },
-        { code: '68',    label: "Dot. aux amortis et provis." },
+        { code: '60', group: 'G1', label: "Achats" },
+        { code: '61', group: 'G1', label: "Services extérieurs" },
+        { code: '62', group: 'G1', label: "Autres services extérieurs" },
+        { code: 'G1-OTHER', group: 'G1', label: "Autres charges G1", isOther: true },
+        
+        { code: '63', group: 'G2', label: "Impôts et taxes" },
+        { code: 'G2-OTHER', group: 'G2', label: "Autres impôts et taxes", isOther: true },
+        
+        { code: '641', group: 'G3', label: "Salaires et traitements" },
+        { code: '645', group: 'G3', label: "Charges sociales" },
+        { code: 'G3-OTHER', group: 'G3', label: "Autres charges de personnel", isOther: true },
+        
+        { code: '65', group: 'G4', label: "Autres charges de gestion courante" },
+        { code: 'G4-OTHER', group: 'G4', label: "Détail autres charges G4", isOther: true },
+        
+        { code: '66', group: 'G5', label: "Charges financières" },
+        { code: '67', group: 'G6', label: "Charges exceptionnelles" },
+        { code: '68', group: 'G7', label: "Dot. aux amortis et provis." },
         
         // RECETTES (7x)
-        { code: '70',    label: "Participation des familles" },
-        { code: '70b',   label: "Prestation de service CAF" },
-        { code: '70c',   label: "Bonus CTG CAF" },
-        { code: '70d',   label: "Cotisations, Adhésions" },
-        { code: '74',    label: "Subvention Marches du Velay Rochebaron" },
-        { code: '74b',   label: "Subvention AJC (CCMVR)" },
-        { code: '76',    label: "Produits financiers" },
-        { code: '77',    label: "Produits exceptionnels" },
-        { code: '78',    label: "Reprise sur Amortis. et provisions" },
-        { code: '79',    label: "Transfert de charges" }
+        { code: '70', group: 'R1', label: "Participation des familles / Cotisations" },
+        { code: '70b', group: 'R1', label: "Prestation de service CAF" },
+        { code: 'R1-OTHER', group: 'R1', label: "Autres recettes G1", isOther: true },
+        
+        { code: '74', group: 'R2', label: "Subvention CCMVR (Demandée ici)", isReadOnly: true },
+        { code: '74b', group: 'R2', label: "Subvention AJC (CCMVR)" },
+        
+        { code: '75', group: 'R3', label: "Autres produits de gestion courante" },
+        { code: '76', group: 'R4', label: "Produits financiers" },
+        { code: '77', group: 'R5', label: "Produits exceptionnels" },
+        { code: '78', group: 'R6', label: "Reprise sur Amortis. et provisions" },
+        { code: '79', group: 'R7', label: "Transfert de charges" }
     ]
 };

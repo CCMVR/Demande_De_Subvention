@@ -101,8 +101,11 @@ const FORM = {
         this.data.financials = accounts.map(acc => ({
             account_code: acc.code,
             label: acc.label,
-            type: acc.code.startsWith('6') ? 'expense' : 'revenue',
-            bp_year: 0, cr_n1: 0, cr_n2: 0, cr_n3: 0
+            type: acc.code.startsWith('6') || acc.group.startsWith('G') ? 'expense' : 'revenue',
+            group: acc.group,
+            bp_year: 0, cr_n1: 0, cr_n2: 0, cr_n3: 0,
+            isOther: acc.isOther || false,
+            isReadOnly: acc.isReadOnly || false
         }));
     },
 
@@ -516,12 +519,17 @@ const FORM = {
 
             if (res.error) throw res.error;
 
-            // 2. Save Financials (Batch)
+            // 2. Save Financials (Batch & Sanitize)
             if (this.currentStep === 6 || this.currentStep === 7) {
                 const finData = this.data.financials.map(f => ({
-                    ...f,
-                    application_id: this.data.application.id
+                    application_id: this.data.application.id,
+                    account_code: f.account_code,
+                    bp_year: parseFloat(f.bp_year) || 0,
+                    cr_n1: parseFloat(f.cr_n1) || 0,
+                    cr_n2: parseFloat(f.cr_n2) || 0,
+                    cr_n3: parseFloat(f.cr_n3) || 0
                 }));
+                
                 const { error: finErr } = await sb.from('financial_records').upsert(finData, { onConflict: 'application_id, account_code' });
                 if (finErr) throw finErr;
             }
@@ -529,6 +537,7 @@ const FORM = {
             UI.notify("Progrès enregistré.", "success");
             this.renderStep(nextStep);
         } catch (err) {
+            console.error("Save error", err);
             UI.notify("Erreur lors de la sauvegarde : " + err.message, "error");
             this.renderStep(nextStep); // Continue anyway for testing
         } finally {
