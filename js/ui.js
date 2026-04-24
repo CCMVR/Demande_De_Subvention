@@ -322,7 +322,7 @@ const UI = {
                                 </thead>
                                 <tbody>
                                     ${['G1','G2','G3','G4','G5','G6','G7','R1','R2','R3','R4','R5','R6','R7'].map(g => {
-                                        const configRow = EXCEL_MAPPING.financial_accounts.find(acc => acc.group === g && acc.account_code.startsWith('TOTAL_'));
+                                        const configRow = EXCEL_MAPPING.financial_accounts.find(acc => acc.group === g && acc.code && acc.code.startsWith('TOTAL_'));
                                         const label = configRow ? configRow.label : g;
                                         const type = g.startsWith('G') ? 'expense' : 'revenue';
                                         const history = a.global_budget_history || {};

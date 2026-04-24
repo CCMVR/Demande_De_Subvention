@@ -313,8 +313,8 @@ const FORM = {
                                 const groupRows = allRows.filter(r => r.group === groupCode);
                                 return `
                                     ${groupRows.map(row => `
-                                        <tr class="${row.isReadOnly ? 'readonly-row' : ''} ${row.group.startsWith('B') ? 'bilan-row' : ''} ${row.account_code.startsWith('TOTAL_') ? 'group-header' : ''} ${type}-row">
-                                            <td>${row.account_code.startsWith('TOTAL_') ? '' : row.account_code}</td>
+                                        <tr class="${row.isReadOnly ? 'readonly-row' : ''} ${row.group.startsWith('B') ? 'bilan-row' : ''} ${(row.account_code && row.account_code.startsWith('TOTAL_')) ? 'group-header' : ''} ${type}-row">
+                                            <td>${(row.account_code && row.account_code.startsWith('TOTAL_')) ? '' : row.account_code}</td>
                                             <td>${row.label}</td>
                                             <td><input type="number" class="calc-input" data-code="${row.account_code}" data-group="${groupCode}" data-field="bp_year" value="${row.bp_year || 0}"></td>
                                             <td><input type="number" class="calc-input" data-code="${row.account_code}" data-group="${groupCode}" data-field="cr_n1" value="${row.cr_n1 || 0}"></td>
@@ -541,8 +541,8 @@ const FORM = {
         groups.forEach(g => {
             if (!g) return;
             const gRows = allRows.filter(r => r.group === g);
-            const headerRow = gRows.find(r => r.account_code.startsWith('TOTAL_'));
-            const detailRows = gRows.filter(r => !r.account_code.startsWith('TOTAL_'));
+            const headerRow = gRows.find(r => r.account_code && r.account_code.startsWith('TOTAL_'));
+            const detailRows = gRows.filter(r => !r.account_code || !r.account_code.startsWith('TOTAL_'));
 
             // Only auto-sum if there are detail rows with values
             const hasDetails = detailRows.some(r => (parseFloat(r.bp_year) || 0) !== 0 || (parseFloat(r.cr_n1) || 0) !== 0);
