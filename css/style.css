@@ -453,8 +453,16 @@ h3 {
 }
 
 .subtotal-row {
-    background-color: #f1f5f9;
+    background-color: #f8fafc;
     font-weight: 600;
+}
+
+.expense-row, .actif-row {
+    border-left: 4px solid #10b981;
+}
+
+.revenue-row, .passif-row {
+    border-left: 4px solid #3b82f6;
 }
 
 .total-row {
@@ -466,6 +474,11 @@ h3 {
     background: #475569;
     color: white;
 }
+
+.actif-row { background-color: #f0fdf4 !important; }
+.passif-row { background-color: #eff6ff !important; }
+.expense-row { background-color: #f0fdf4 !important; }
+.revenue-row { background-color: #eff6ff !important; }
 
 .bilan-row td:first-child {
     background-color: #f8fafc;
