@@ -6,23 +6,15 @@
     <title>Demande de Subvention - CCMVR</title>
     <meta name="description" content="Portail des demandes de subvention annuelle de fonctionnement pour la Communauté de Communes des Marches du Velay Rochebaron.">
     
-    <!-- Google Fonts: Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=1.8">
-    
-    <!-- Supabase JS CDN -->
+    <link rel="stylesheet" href="css/style.css?v=2.0">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div id="app">
-        <!-- Splash Screen / Initial Loader -->
         <div id="splash-screen">
             <div class="splash-content">
                 <div class="spinner"></div>
@@ -30,7 +22,6 @@
             </div>
         </div>
 
-        <!-- Auth View -->
         <main id="auth-container" class="view hidden">
             <div class="glass-card auth-card">
                 <div class="auth-header">
@@ -61,84 +52,41 @@
                             <input type="email" id="reg-email" required placeholder="contact@asso.fr">
                         </div>
                         <div class="grid-2">
-                            <div class="input-group">
-                                <label for="reg-password">Mot de passe</label>
-                                <input type="password" id="reg-password" required placeholder="••••••••">
-                            </div>
-                            <div class="input-group">
-                                <label for="reg-confirm-password">Confirmation</label>
-                                <input type="password" id="reg-confirm-password" required placeholder="••••••••">
-                            </div>
+                            <div class="input-group"><label for="reg-password">Mot de passe</label><input type="password" id="reg-password" required placeholder="••••••••"></div>
+                            <div class="input-group"><label for="reg-confirm-password">Confirmation</label><input type="password" id="reg-confirm-password" required placeholder="••••••••"></div>
                         </div>
                     </div>
-
                     <div class="form-section">
                         <h4>Informations Administratives</h4>
-                        <div class="input-group">
-                            <label for="reg-assoc-name">Nom complet de l'association</label>
-                            <input type="text" id="reg-assoc-name" required placeholder="Ex: Club Sportif ...">
+                        <div class="input-group"><label for="reg-assoc-name">Nom complet de l'association</label><input type="text" id="reg-assoc-name" required placeholder="Ex: Club Sportif ..."></div>
+                        <div class="grid-2">
+                            <div class="input-group"><label for="reg-rna">Numéro RNA</label><input type="text" id="reg-rna" required placeholder="W000000000"></div>
+                            <div class="input-group"><label for="reg-creation-date">Date de création</label><input type="date" id="reg-creation-date" required></div>
                         </div>
                         <div class="grid-2">
-                            <div class="input-group">
-                                <label for="reg-rna">Numéro RNA</label>
-                                <input type="text" id="reg-rna" required placeholder="W000000000">
-                            </div>
-                            <div class="input-group">
-                                <label for="reg-creation-date">Date de création</label>
-                                <input type="date" id="reg-creation-date" required>
-                            </div>
-                        </div>
-                        <div class="grid-2">
-                            <div class="input-group">
-                                <label for="reg-siren">Numéro SIREN</label>
-                                <input type="text" id="reg-siren" required placeholder="9 chiffres">
-                            </div>
-                            <div class="input-group">
-                                <label for="reg-siret">Numéro SIRET</label>
-                                <input type="text" id="reg-siret" required placeholder="14 chiffres">
-                            </div>
+                            <div class="input-group"><label for="reg-siren">Numéro SIREN</label><input type="text" id="reg-siren" required placeholder="9 chiffres"></div>
+                            <div class="input-group"><label for="reg-siret">Numéro SIRET</label><input type="text" id="reg-siret" required placeholder="14 chiffres"></div>
                         </div>
                     </div>
-
                     <div class="form-section">
-                        <h4>Gouvernance & Statuts</h4>
-                        <div class="input-group">
-                            <label for="reg-declarant">Nom complet du déclarant</label>
-                            <input type="text" id="reg-declarant" required placeholder="Prénom NOM">
-                        </div>
-                        <div class="input-group">
-                            <label for="reg-leaders">Liste des dirigeants (Bureau)</label>
-                            <textarea id="reg-leaders" rows="3" required placeholder="Président: ..., Trésorier: ..., etc."></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label for="reg-statutes">Texte des statuts (Copie brute)</label>
-                            <textarea id="reg-statutes" rows="4" required placeholder="Collez ici le texte de vos statuts..."></textarea>
-                        </div>
+                        <h4>Gouvernance &amp; Statuts</h4>
+                        <div class="input-group"><label for="reg-declarant">Nom complet du déclarant</label><input type="text" id="reg-declarant" required placeholder="Prénom NOM"></div>
+                        <div class="input-group"><label for="reg-leaders">Liste des dirigeants (Bureau)</label><textarea id="reg-leaders" rows="3" required placeholder="Président: ..., Trésorier: ..., etc."></textarea></div>
+                        <div class="input-group"><label for="reg-statutes">Texte des statuts (Copie brute)</label><textarea id="reg-statutes" rows="4" required placeholder="Collez ici le texte de vos statuts..."></textarea></div>
                     </div>
-
                     <div class="form-section">
                         <h4>Coordonnées de contact</h4>
                         <div class="grid-2">
-                            <div class="input-group">
-                                <label for="reg-contact-email">Email de contact public</label>
-                                <input type="email" id="reg-contact-email" required placeholder="asso@exemple.fr">
-                            </div>
-                            <div class="input-group">
-                                <label for="reg-contact-phone">Numéro de contact</label>
-                                <input type="tel" id="reg-contact-phone" required placeholder="06 00 00 00 00">
-                            </div>
+                            <div class="input-group"><label for="reg-contact-email">Email de contact public</label><input type="email" id="reg-contact-email" required placeholder="asso@exemple.fr"></div>
+                            <div class="input-group"><label for="reg-contact-phone">Numéro de contact</label><input type="tel" id="reg-contact-phone" required placeholder="06 00 00 00 00"></div>
                         </div>
                     </div>
-
                     <button type="submit" class="btn btn-primary">Créer le compte association</button>
-                    <p class="auth-footer">
-                        Déjà un compte ? <a href="#" id="show-login">Se connecter</a>
-                    </p>
+                    <p class="auth-footer">Déjà un compte ? <a href="#" id="show-login">Se connecter</a></p>
                 </form>
             </div>
         </main>
 
-        <!-- App View -->
         <div id="app-content" class="view hidden">
             <header class="main-header">
                 <div class="header-left">
@@ -152,60 +100,39 @@
 
             <div class="main-layout">
                 <aside class="sidebar">
-                    <div class="sidebar-header">
-                        <div class="logo-container">CCMVR</div>
-                    </div>
+                    <div class="sidebar-header"><div class="logo-container">CCMVR</div></div>
                     <nav id="main-nav">
-                        <button class="nav-item active" data-view="dashboard">
-                            <i class="fas fa-home"></i> <span>Tableau de bord</span>
-                        </button>
-                        <button class="nav-item" data-view="application" id="nav-new-app">
-                            <i class="fas fa-file-invoice-dollar"></i> <span>Nouvelle demande</span>
-                        </button>
-                        <button class="nav-item" data-view="history">
-                            <i class="fas fa-history"></i> <span>Historique</span>
-                        </button>
-                        <button class="nav-item" data-view="profile">
-                            <i class="fas fa-id-card"></i> <span>Mon Profil</span>
-                        </button>
-                        <!-- Admin Only -->
+                        <button class="nav-item active" data-view="dashboard"><i class="fas fa-home"></i> <span>Tableau de bord</span></button>
+                        <button class="nav-item" data-view="application" id="nav-new-app"><i class="fas fa-file-invoice-dollar"></i> <span>Nouvelle demande</span></button>
+                        <button class="nav-item" data-view="history"><i class="fas fa-history"></i> <span>Historique</span></button>
+                        <button class="nav-item" data-view="profile"><i class="fas fa-id-card"></i> <span>Mon Profil</span></button>
                         <div id="admin-menu" class="hidden">
                             <hr>
-                            <button class="nav-item" data-view="admin-dashboard">
-                                <i class="fas fa-users-cog"></i> <span>Gestion Admin</span>
-                            </button>
+                            <button class="nav-item" data-view="admin-dashboard"><i class="fas fa-users-cog"></i> <span>Gestion Admin</span></button>
+                            <button class="nav-item" data-view="admin-instruction"><i class="fas fa-clipboard-list"></i> <span>Instruction</span></button>
                         </div>
                     </nav>
                 </aside>
-
-                <main id="content-area">
-                    <!-- Dynamic fragments will be loaded here -->
-                </main>
+                <main id="content-area"></main>
             </div>
         </div>
 
-        <!-- Notification System -->
         <div id="notification-container"></div>
-        
-        <div id="global-loader" class="hidden">
-            <div class="spinner"></div>
-        </div>
-        
-        <!-- Version Info -->
+        <div id="global-loader" class="hidden"><div class="spinner"></div></div>
         <div id="github-version" class="github-version"></div>
     </div>
 
-    <!-- Scripts Injection -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="js/utils.js?v=1.8"></script>
-    <script src="js/config.js?v=1.8"></script>
-    <script src="js/supabase-client.js?v=1.8"></script>
-    <script src="js/logo-data.js?v=1.8"></script>
-    <script src="js/auth.js?v=1.8"></script>
-    <script src="js/ui.js?v=1.8"></script>
-    <script src="js/form.js?v=1.8"></script>
-    <script src="js/admin.js?v=1.8"></script>
-    <script src="js/pdf.js?v=1.8"></script>
-    <script src="js/main.js?v=1.8"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="js/utils.js?v=2.0"></script>
+    <script src="js/config.js?v=2.0"></script>
+    <script src="js/supabase-client.js?v=2.0"></script>
+    <script src="js/logo-data.js?v=2.0"></script>
+    <script src="js/auth.js?v=2.0"></script>
+    <script src="js/ui.js?v=2.0"></script>
+    <script src="js/form.js?v=2.0"></script>
+    <script src="js/admin.js?v=2.0"></script>
+    <script src="js/pdf.js?v=2.0"></script>
+    <script src="js/main.js?v=2.0"></script>
 </body>
 </html>

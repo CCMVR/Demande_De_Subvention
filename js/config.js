@@ -5,7 +5,8 @@ const CONFIG = {
     AO_EMAIL: "Admin@ccmvr.fr",
     DATA_RETENTION_YEARS: 10,
     REGISTRATION_VALIDITY_DAYS: 3,
-    GITHUB_REPO: "mjacquiot/Demande-de-subvention"
+    GITHUB_REPO: "mjacquiot/Demande-de-subvention",
+    CURRENT_YEAR: 2026
 };
 
 // Application State
@@ -14,5 +15,31 @@ const STATE = {
     profile: null,
     association: null,
     currentView: 'dashboard',
-    lastApplication: null
+    lastApplication: null,
+    viewData: null,       // Extra data passed to switchView (e.g. assocId for admin)
+    selectedAxe: null,
+    currentAxeMetrics: null
 };
+
+// Centralized state cleanup
+function cleanState() {
+    STATE.user = null;
+    STATE.profile = null;
+    STATE.association = null;
+    STATE.currentView = 'dashboard';
+    STATE.lastApplication = null;
+    STATE.viewData = null;
+    STATE.selectedAxe = null;
+    STATE.currentAxeMetrics = null;
+
+    // Reset FORM data if it exists
+    if (typeof FORM !== 'undefined' && FORM.resetData) {
+        FORM.resetData();
+        FORM.currentStep = 1;
+    }
+
+    // Reset ADMIN state
+    if (typeof ADMIN !== 'undefined') {
+        ADMIN.initialized = false;
+    }
+}

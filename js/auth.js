@@ -10,24 +10,33 @@ const AUTH = {
         // Listen for auth changes
         sb.auth.onAuthStateChange(async (event, session) => {
             console.log("Auth Event:", event);
-            UI.toggleLoader(true);
             
             try {
-                if (session) {
+                if (event === 'SIGNED_OUT') {
+                    // FULL CLEANUP on sign out
+                    cleanState();
+                    UI.resetRoleUI();
+                    UI.showAuth();
+                    return;
+                }
+
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    // Clean previous state before loading new profile (handles account switching)
+                    if (STATE.user && session && STATE.user.id !== session.user.id) {
+                        console.log("AUTH: Different user detected, cleaning old state.");
+                        cleanState();
+                    }
+
+                    UI.toggleLoader(true);
                     STATE.user = session.user;
                     await AUTH.loadProfile();
                     UI.showApp();
-                } else {
-                    STATE.user = null;
-                    STATE.profile = null;
-                    STATE.association = null;
-                    UI.showAuth();
+                    UI.toggleLoader(false);
                 }
             } catch (err) {
                 console.error("Critical Auth Error:", err);
                 UI.notify("Erreur d'initialisation du compte.", "error");
-                UI.showAuth(); // Always fallback to something visible
-            } finally {
+                UI.showAuth();
                 UI.toggleLoader(false);
             }
         });
@@ -50,7 +59,10 @@ const AUTH = {
         // Initialize UI listeners
         document.getElementById('login-form').addEventListener('submit', AUTH.login);
         document.getElementById('register-form').addEventListener('submit', AUTH.register);
-        document.getElementById('logout-btn').addEventListener('click', () => sb.auth.signOut());
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            cleanState();
+            await sb.auth.signOut();
+        });
         
         document.getElementById('show-register').addEventListener('click', (e) => {
             e.preventDefault();
@@ -67,6 +79,9 @@ const AUTH = {
         e.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        
+        // Clean any stale state before login
+        cleanState();
         
         UI.toggleLoader(true);
         try {
@@ -128,7 +143,6 @@ const AUTH = {
             if (!newAssoc) throw new Error("Erreur lors de la création de la fiche association.");
 
             // C. Create/Update Profile Record (Link Auth User to Association)
-            // Using upsert to prevent "duplicate key" errors if profile already exists
             await DB.createProfile({
                 id: authData.user.id,
                 association_id: newAssoc.id
