@@ -109,6 +109,51 @@ const FORM = {
         } catch (err) { console.error("Render Step Error:", err); UI.notify("Erreur étape " + step + ": " + err.message, "error"); }
     },
 
+    // Automation Tools
+    copyN1ToBP() {
+        const type = this.currentStep === 6 ? 'expense' : 'revenue';
+        this.data.financials.filter(f => f.type === type && !f.isSubtotal).forEach(row => {
+            row.bp_year = row.cr_n1 || 0;
+        });
+        UI.notify("Colonne N-1 copiée vers BP.", "info");
+        this.renderStep(this.currentStep);
+    },
+
+    applyGlobalPercentage(field) {
+        const pctEl = document.getElementById('pct-value');
+        const pct = pctEl ? (parseFloat(pctEl.value) || 0) : 0;
+        if (pct <= 0) return UI.notify("Veuillez saisir un pourcentage valide.", "error");
+
+        const type = this.currentStep === 6 ? 'expense' : 'revenue';
+        const history = STATE.association?.global_budget_history || {};
+        const historyField = field === 'bp_year' ? 'bp' : (field === 'cr_n1' ? 'n1' : (field === 'cr_n2' ? 'n2' : 'n3'));
+        
+        const allRows = this.data.financials.filter(f => f.type === type);
+        const groups = [...new Set(allRows.map(r => r.group))];
+        
+        let count = 0;
+        groups.forEach(g => {
+            const profileData = history[g] || {};
+            const globalVal = parseFloat(profileData[historyField]) || 0;
+            if (globalVal > 0) {
+                const axeVal = Math.round(globalVal * (pct / 100) * 100) / 100;
+                // Find first detail row of this group
+                const row = allRows.find(r => r.group === g && !r.isSubtotal);
+                if (row) {
+                    row[field] = axeVal;
+                    count++;
+                }
+            }
+        });
+
+        if (count > 0) {
+            UI.notify(`Affectation de ${pct}% du global effectuée sur ${count} groupes.`, "success");
+            this.renderStep(this.currentStep);
+        } else {
+            UI.notify("Aucune donnée globale correspondante trouvée dans votre profil.", "warning");
+        }
+    },
+
     tplNotice() {
         return `<div class="form-step"><h3>Notice d'utilisation</h3>
             <div class="info-box"><p>Bienvenue dans le portail de demande de subvention CCMVR.</p>
@@ -174,6 +219,26 @@ const FORM = {
 
         return `<div class="form-step wide"><h3>Étape ${stepNum} — ${title}</h3>
             <p class="help-text">Détaillez les montants spécifiques au projet/axe sélectionné. Les <span class="auto-cell-demo">cases grisées</span> sont calculées automatiquement.</p>
+            
+            <div class="table-tools" style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px">
+                <div style="display:flex; align-items:center; gap:10px">
+                    <span style="font-weight:600; font-size:0.85rem">Outils de saisie :</span>
+                    <button class="btn btn-secondary btn-sm" onclick="FORM.copyN1ToBP()"><i class="fas fa-copy"></i> Copier N-1 → BP</button>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px">
+                    <span style="font-weight:600; font-size:0.85rem">Affecter % du global (Profil) :</span>
+                    <div style="display:flex; align-items:center; background:white; border:1px solid #cbd5e1; border-radius:6px; padding:2px 8px">
+                        <input type="number" id="pct-value" value="100" style="width:50px; border:none; padding:4px; font-weight:bold; text-align:right" min="0" max="100">
+                        <span style="font-weight:700; margin-left:2px">%</span>
+                    </div>
+                    <div class="btn-group" style="display:flex; gap:2px">
+                        <button class="btn btn-secondary btn-sm" onclick="FORM.applyGlobalPercentage('cr_n1')" title="Appliquer à N-1">N-1</button>
+                        <button class="btn btn-secondary btn-sm" onclick="FORM.applyGlobalPercentage('cr_n2')" title="Appliquer à N-2">N-2</button>
+                        <button class="btn btn-secondary btn-sm" onclick="FORM.applyGlobalPercentage('cr_n3')" title="Appliquer à N-3">N-3</button>
+                    </div>
+                </div>
+            </div>
+
             <div class="table-responsive"><table class="financial-table">
                 <thead><tr><th style="min-width:250px">Libellé</th><th>BP ${Y}</th><th>CR ${Y-1} (N-1)</th><th>CR ${Y-2} (N-2)</th><th>CR ${Y-3} (N-3)</th><th>Evol. %</th></tr></thead>
                 <tbody>${groups.map(groupCode => {
@@ -208,9 +273,20 @@ const FORM = {
                         <td class="readonly-cell st-evol" data-group="${groupCode}">0%</td></tr>`;
                     return html;
                 }).join('')}</tbody>
-                <tfoot><tr class="total-row"><td>TOTAL GÉNÉRAL</td>
-                    <td id="total-bp">0 €</td><td id="total-n1">0 €</td><td id="total-n2">0 €</td><td id="total-n3">0 €</td><td id="total-evol">0%</td>
-                </tr></tfoot>
+                <tfoot>
+                    <tr class="total-row"><td>TOTAL GÉNÉRAL</td>
+                        <td id="total-bp">0 €</td><td id="total-n1">0 €</td><td id="total-n2">0 €</td><td id="total-n3">0 €</td><td id="total-evol">0%</td>
+                    </tr>
+                    ${type === 'revenue' ? `
+                    <tr class="diff-row result-row" style="background:#fff1f2 !important; border-top:2px solid var(--primary-color)">
+                        <td style="font-weight:700">RÉSULTAT : Bénéfice (+) / Déficit (-)</td>
+                        <td id="res-bp" style="font-weight:700">0 €</td>
+                        <td id="res-n1" style="font-weight:700">0 €</td>
+                        <td id="res-n2" style="font-weight:700">0 €</td>
+                        <td id="res-n3" style="font-weight:700">0 €</td>
+                        <td></td>
+                    </tr>` : ''}
+                </tfoot>
             </table></div>
             <div class="form-actions">
                 <button class="btn" onclick="FORM.renderStep(${type==='expense'?5:6})">Précédent</button>
@@ -310,6 +386,33 @@ const FORM = {
         if (document.getElementById('total-n2')) document.getElementById('total-n2').textContent = fmt(n2T);
         if (document.getElementById('total-n3')) document.getElementById('total-n3').textContent = fmt(n3T);
         if (document.getElementById('total-evol')) document.getElementById('total-evol').textContent = UTILS.calculateEvolution(bpT, n1T) + '%';
+
+        // Calculation of Net Result (Step 7 only)
+        if (type === 'revenue') {
+            const calcExp = (field) => {
+                const expRows = this.data.financials.filter(r => r.type === 'expense');
+                const expGroups = [...new Set(expRows.map(r => r.group))];
+                return expGroups.reduce((sum, g) => {
+                    const sub = expRows.find(r => r.group === g && r.isSubtotal);
+                    return sum + (sub ? (parseFloat(sub[field])||0) : 0);
+                }, 0);
+            };
+            const expBP = calcExp('bp_year'), expN1 = calcExp('cr_n1'), expN2 = calcExp('cr_n2'), expN3 = calcExp('cr_n3');
+            
+            const resBP = bpT - expBP, resN1 = n1T - expN1, resN2 = n2T - expN2, resN3 = n3T - expN3;
+            
+            if (document.getElementById('res-bp')) document.getElementById('res-bp').textContent = fmt(resBP);
+            if (document.getElementById('res-n1')) document.getElementById('res-n1').textContent = fmt(resN1);
+            if (document.getElementById('res-n2')) document.getElementById('res-n2').textContent = fmt(resN2);
+            if (document.getElementById('res-n3')) document.getElementById('res-n3').textContent = fmt(resN3);
+            
+            // Color coding for positive/negative result
+            ['bp', 'n1', 'n2', 'n3'].forEach(k => {
+                const val = k === 'bp' ? resBP : (k === 'n1' ? resN1 : (k === 'n2' ? resN2 : resN3));
+                const el = document.getElementById(`res-${k}`);
+                if (el) el.style.color = val < 0 ? '#ef4444' : '#10b981';
+            });
+        }
     },
 
     async saveAndNext(nextStep) {

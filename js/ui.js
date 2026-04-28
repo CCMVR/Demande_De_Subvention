@@ -284,27 +284,70 @@ const UI = {
 
                     <div class="profile-section">
                         <h4>Budget Global de l'Association (Historique &amp; Prévisionnel)</h4>
-                        <p class="help-text">Totaux par catégorie pour l'ensemble de votre structure.</p>
+                        <p class="help-text">Renseignez ici le Compte de Résultat global de votre structure. Les totaux sont calculés automatiquement.</p>
                         <div class="table-responsive">
                             <table class="financial-table">
-                                <thead><tr>
-                                    <th>Catégorie</th><th>BP ${CONFIG.CURRENT_YEAR}</th><th>CR ${CONFIG.CURRENT_YEAR-1} (N-1)</th><th>CR ${CONFIG.CURRENT_YEAR-2} (N-2)</th><th>CR ${CONFIG.CURRENT_YEAR-3} (N-3)</th>
-                                </tr></thead>
+                                <thead>
+                                    <tr style="background:var(--secondary-color); color:white">
+                                        <th style="text-align:left; padding:12px">Catégories</th>
+                                        <th>BP ${CONFIG.CURRENT_YEAR}</th>
+                                        <th>CR ${CONFIG.CURRENT_YEAR-1} (N-1)</th>
+                                        <th>CR ${CONFIG.CURRENT_YEAR-2} (N-2)</th>
+                                        <th>CR ${CONFIG.CURRENT_YEAR-3} (N-3)</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
-                                    ${['G1','G2','G3','G4','G5','G6','G7','R1','R2','R3','R4','R5','R6','R7'].map(g => {
+                                    <tr class="group-header-row"><td colspan="5" style="background:#f1f5f9; font-weight:700; color:var(--primary-color); padding:8px 12px; border-left:4px solid #ef4444">CHARGES (Dépenses globales)</td></tr>
+                                    ${['G1','G2','G3','G4','G5','G6','G7'].map(g => {
                                         const configRow = EXCEL_MAPPING.financial_accounts.find(acc => acc.group === g && acc.isSubtotal);
                                         const label = configRow ? configRow.label : g;
-                                        const type = g.startsWith('G') ? 'expense' : 'revenue';
                                         const history = a.global_budget_history || {};
                                         const row = history[g] || { bp: 0, n1: 0, n2: 0, n3: 0 };
-                                        return `<tr class="${type}-row">
-                                            <td style="font-size:0.8rem"><strong>${label}</strong></td>
+                                        return `<tr class="expense-row">
+                                            <td style="font-size:0.8rem; padding-left:20px">${label}</td>
                                             <td><input type="number" class="p-budget-input" data-group="${g}" data-field="bp" value="${row.bp}"></td>
                                             <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n1" value="${row.n1}"></td>
                                             <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n2" value="${row.n2}"></td>
                                             <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n3" value="${row.n3}"></td>
                                         </tr>`;
                                     }).join('')}
+                                    <tr class="subtotal-row" style="background:#fef2f2">
+                                        <td style="font-weight:700; padding-left:12px">TOTAL DES CHARGES</td>
+                                        <td id="p-total-charges-bp" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                        <td id="p-total-charges-n1" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                        <td id="p-total-charges-n2" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                        <td id="p-total-charges-n3" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                    </tr>
+
+                                    <tr class="group-header-row"><td colspan="5" style="background:#f1f5f9; font-weight:700; color:var(--primary-color); padding:8px 12px; border-left:4px solid #10b981; margin-top:10px">PRODUITS (Recettes globales)</td></tr>
+                                    ${['R1','R2','R3','R4','R5','R6','R7'].map(g => {
+                                        const configRow = EXCEL_MAPPING.financial_accounts.find(acc => acc.group === g && acc.isSubtotal);
+                                        const label = configRow ? configRow.label : g;
+                                        const history = a.global_budget_history || {};
+                                        const row = history[g] || { bp: 0, n1: 0, n2: 0, n3: 0 };
+                                        return `<tr class="revenue-row">
+                                            <td style="font-size:0.8rem; padding-left:20px">${label}</td>
+                                            <td><input type="number" class="p-budget-input" data-group="${g}" data-field="bp" value="${row.bp}"></td>
+                                            <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n1" value="${row.n1}"></td>
+                                            <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n2" value="${row.n2}"></td>
+                                            <td><input type="number" class="p-budget-input" data-group="${g}" data-field="n3" value="${row.n3}"></td>
+                                        </tr>`;
+                                    }).join('')}
+                                    <tr class="subtotal-row" style="background:#f0fdf4">
+                                        <td style="font-weight:700; padding-left:12px">TOTAL DES PRODUITS</td>
+                                        <td id="p-total-produits-bp" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                        <td id="p-total-produits-n1" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                        <td id="p-total-produits-n2" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                        <td id="p-total-produits-n3" style="font-weight:700; text-align:right; padding:8px">0 €</td>
+                                    </tr>
+
+                                    <tr class="result-row" style="background:white; border-top:2px solid var(--primary-color)">
+                                        <td style="font-weight:800; padding:12px; color:var(--primary-color)">RÉSULTAT (Bénéfice / Déficit)</td>
+                                        <td id="p-total-resultat-bp" style="font-weight:800; text-align:right; padding:12px">0 €</td>
+                                        <td id="p-total-resultat-n1" style="font-weight:800; text-align:right; padding:12px">0 €</td>
+                                        <td id="p-total-resultat-n2" style="font-weight:800; text-align:right; padding:12px">0 €</td>
+                                        <td id="p-total-resultat-n3" style="font-weight:800; text-align:right; padding:12px">0 €</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -362,6 +405,30 @@ const UI = {
         });
     },
 
+    recalcProfileBudget() {
+        ['bp', 'n1', 'n2', 'n3'].forEach(f => {
+            const getVal = (g) => {
+                const input = document.querySelector(`.p-budget-input[data-group="${g}"][data-field="${f}"]`);
+                return input ? (parseFloat(input.value) || 0) : 0;
+            };
+
+            const charges = ['G1','G2','G3','G4','G5','G6','G7'].reduce((sum, g) => sum + getVal(g), 0);
+            const produits = ['R1','R2','R3','R4','R5','R6','R7'].reduce((sum, g) => sum + getVal(g), 0);
+            const result = produits - charges;
+
+            const elCharges = document.getElementById(`p-total-charges-${f}`);
+            const elProduits = document.getElementById(`p-total-produits-${f}`);
+            const elResultat = document.getElementById(`p-total-resultat-${f}`);
+
+            if (elCharges) elCharges.textContent = UTILS.formatCurrency(charges);
+            if (elProduits) elProduits.textContent = UTILS.formatCurrency(produits);
+            if (elResultat) {
+                elResultat.textContent = UTILS.formatCurrency(result);
+                elResultat.style.color = result < 0 ? '#ef4444' : '#10b981';
+            }
+        });
+    },
+
     bindProfileEvents() {
         const form = document.getElementById('profile-edit-form');
         if (!form) return;
@@ -371,6 +438,12 @@ const UI = {
             input.addEventListener('input', () => UI.recalcBilan());
         });
         UI.recalcBilan();
+
+        // Profile budget auto-calc
+        document.querySelectorAll('.p-budget-input').forEach(input => {
+            input.addEventListener('input', () => UI.recalcProfileBudget());
+        });
+        UI.recalcProfileBudget();
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();

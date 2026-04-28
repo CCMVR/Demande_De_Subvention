@@ -62,6 +62,7 @@ const EXCEL_MAPPING = {
         
         // GROUP G2 — 63 Impôts et taxes
         { code: 'TOTAL_G2', group: 'G2', label: "63 - Impôts et taxes", type: 'expense', isSubtotal: true, subtotalLabel: "Sous-total : Impôts et taxes" },
+        { code: '63', group: 'G2', label: "Impôts, taxes et versements assimilés", type: 'expense' },
         
         // GROUP G3 — 64 Charges de personnel
         { code: 'TOTAL_G3', group: 'G3', label: "64 - Charges de personnel", type: 'expense', isSubtotal: true, subtotalLabel: "Sous-total : Charges de personnel" },
@@ -69,15 +70,19 @@ const EXCEL_MAPPING = {
         
         // GROUP G4 — 65 Autres charges de gestion courante
         { code: 'TOTAL_G4', group: 'G4', label: "65 - Autres charges de gestion courante", type: 'expense', isSubtotal: true, subtotalLabel: "Sous-total : Autres charges de gestion courante" },
+        { code: '65', group: 'G4', label: "Autres charges de gestion courante", type: 'expense' },
         
         // GROUP G5 — 66 Charges financières
         { code: 'TOTAL_G5', group: 'G5', label: "66 - Charges financières", type: 'expense', isSubtotal: true, subtotalLabel: "Sous-total : Charges financières" },
+        { code: '66', group: 'G5', label: "Charges financières", type: 'expense' },
         
         // GROUP G6 — 67 Charges exceptionnelles
         { code: 'TOTAL_G6', group: 'G6', label: "67 - Charges exceptionnelles", type: 'expense', isSubtotal: true, subtotalLabel: "Sous-total : Charges exceptionnelles" },
+        { code: '67', group: 'G6', label: "Charges exceptionnelles", type: 'expense' },
         
         // GROUP G7 — 68 Dotations
         { code: 'TOTAL_G7', group: 'G7', label: "68 - Dot. aux amortis. et aux provis.", type: 'expense', isSubtotal: true, subtotalLabel: "Sous-total : Dotations aux amortissements et provisions" },
+        { code: '68', group: 'G7', label: "Dotations aux amortissements, dépréciations et provisions", type: 'expense' },
 
         // ========== RECETTES (Revenue) ==========
         
@@ -97,18 +102,23 @@ const EXCEL_MAPPING = {
 
         // GROUP R3 — 76 Produits financiers
         { code: 'TOTAL_R3', group: 'R3', label: "76 - Produits financiers", type: 'revenue', isSubtotal: true, subtotalLabel: "Sous-total : Produits financiers" },
+        { code: '76', group: 'R3', label: "Produits financiers", type: 'revenue' },
         
         // GROUP R4 — 77 Produits exceptionnels
         { code: 'TOTAL_R4', group: 'R4', label: "77 - Produits exceptionnels", type: 'revenue', isSubtotal: true, subtotalLabel: "Sous-total : Produits exceptionnels" },
+        { code: '77', group: 'R4', label: "Produits exceptionnels", type: 'revenue' },
         
         // GROUP R5 — 78 Reprises
         { code: 'TOTAL_R5', group: 'R5', label: "78 - Reprise sur amortis. et provisions", type: 'revenue', isSubtotal: true, subtotalLabel: "Sous-total : Reprises sur amortissements et provisions" },
+        { code: '78', group: 'R5', label: "Reprises sur provisions et dépréciations", type: 'revenue' },
         
         // GROUP R6 — 79 Transferts de charges
         { code: 'TOTAL_R6', group: 'R6', label: "79 - Transfert de charges", type: 'revenue', isSubtotal: true, subtotalLabel: "Sous-total : Transfert de charges" },
+        { code: '79', group: 'R6', label: "Transferts de charges", type: 'revenue' },
         
         // GROUP R7 — 75 Autres produits
         { code: 'TOTAL_R7', group: 'R7', label: "75 - Autres produits", type: 'revenue', isSubtotal: true, subtotalLabel: "Sous-total : Autres produits" },
+        { code: '75', group: 'R7', label: "Autres produits de gestion courante", type: 'revenue' },
 
         // ========== BILAN ==========
         // ACTIF
