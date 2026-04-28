@@ -61,7 +61,7 @@ const ADMIN = {
                 <table class="financial-table matrix-table">
                     <thead><tr>
                         <th style="min-width:200px">Question</th><th>Type</th>
-                        ${axes.map(a => `<th style="text-align:center;min-width:80px"><div style="writing-mode:vertical-lr;transform:rotate(180deg);font-size:0.75rem">${a.code} — ${a.principal}</div></th>`).join('')}
+                        ${axes.map(a => `<th class="axe-header"><div>${a.code} — ${a.principal}</div></th>`).join('')}
                         <th></th>
                     </tr></thead>
                     <tbody>${allMetrics.map(m => `<tr>

@@ -180,6 +180,25 @@ h3 { margin-bottom:20px; color:var(--secondary-color); font-weight:700; }
 .matrix-table td { padding:6px 8px; }
 .matrix-check { width:18px; height:18px; cursor:pointer; }
 
+.axe-header {
+    vertical-align: bottom !important;
+    text-align: center !important;
+    padding-bottom: 15px !important;
+    min-width: 80px;
+}
+
+.axe-header div {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    display: inline-block;
+    white-space: nowrap;
+    text-align: left;
+    margin: 0 auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
 /* Metrics grid */
 .metrics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:15px; margin-top:15px; }
 .metric-config-item { display:flex; justify-content:space-between; align-items:center; padding:15px !important; }
