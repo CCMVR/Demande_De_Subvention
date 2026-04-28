@@ -57,7 +57,23 @@ const UI = {
     },
 
     toggleLoader(show) {
-        document.getElementById('global-loader').classList.toggle('hidden', !show);
+        const loader = document.getElementById('global-loader');
+        if (!loader) return;
+        
+        loader.classList.toggle('hidden', !show);
+        
+        // Safety timeout: never let the loader spin for more than 10s
+        if (show) {
+            if (this.loaderTimer) clearTimeout(this.loaderTimer);
+            this.loaderTimer = setTimeout(() => {
+                if (!loader.classList.contains('hidden')) {
+                    console.warn("Loader safety timeout triggered.");
+                    loader.classList.add('hidden');
+                }
+            }, 10000);
+        } else {
+            if (this.loaderTimer) clearTimeout(this.loaderTimer);
+        }
     },
 
     showAuth() {

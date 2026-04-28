@@ -9,19 +9,28 @@ const AUTH = {
 
         // Listen for auth changes
         sb.auth.onAuthStateChange(async (event, session) => {
-            console.log("Auth Event:", event);
+            console.log("Auth Event:", event, "User ID:", session?.user?.id);
             
             try {
                 if (event === 'SIGNED_OUT') {
-                    // FULL CLEANUP on sign out
                     cleanState();
                     UI.resetRoleUI();
                     UI.showAuth();
+                    UI.toggleLoader(false);
                     return;
                 }
 
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                    // Clean previous state before loading new profile (handles account switching)
+                    // CRITICAL FIX: If we already have a user and profile, and it's the same user, 
+                    // do NOT reload the whole UI. This prevents the "infinite spinner" on Alt+Tab/Focus.
+                    if (STATE.user && session && STATE.user.id === session.user.id && STATE.profile) {
+                        console.log("AUTH: Session verified (focus/refresh). UI preserved.");
+                        STATE.user = session.user; // Update session data (tokens)
+                        UI.toggleLoader(false);
+                        return;
+                    }
+
+                    // Clean previous state before loading new profile if user changed
                     if (STATE.user && session && STATE.user.id !== session.user.id) {
                         console.log("AUTH: Different user detected, cleaning old state.");
                         cleanState();
@@ -31,12 +40,12 @@ const AUTH = {
                     STATE.user = session.user;
                     await AUTH.loadProfile();
                     UI.showApp();
-                    UI.toggleLoader(false);
                 }
             } catch (err) {
                 console.error("Critical Auth Error:", err);
-                UI.notify("Erreur d'initialisation du compte.", "error");
+                UI.notify("Erreur d'authentification.", "error");
                 UI.showAuth();
+            } finally {
                 UI.toggleLoader(false);
             }
         });
