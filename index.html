@@ -1,138 +1,771 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demande de Subvention - CCMVR</title>
-    <meta name="description" content="Portail des demandes de subvention annuelle de fonctionnement pour la Communauté de Communes des Marches du Velay Rochebaron.">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=2.0">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Forge Master - Simulateur de Combat V4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div id="app">
-        <div id="splash-screen">
-            <div class="splash-content">
-                <div class="spinner"></div>
-                <p>Initialisation de CCMVR Subventions...</p>
+
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+            <div class="text-center md:text-left">
+                <h1
+                    class="text-4xl md:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-400">
+                    FORGE MASTER
+                </h1>
+                <p class="text-slate-400 font-black tracking-[0.2em] text-xs uppercase mt-1">PvP Battle Simulator V4.0
+                </p>
             </div>
-        </div>
 
-        <main id="auth-container" class="view hidden">
-            <div class="glass-card auth-card">
-                <div class="auth-header">
-                    <div class="logo-container auth-logo-container">CCMVR</div>
-                    <h1>Portail Subventions</h1>
-                </div>
-                
-                <form id="login-form">
-                    <div class="input-group">
-                        <label for="email">Adresse mail</label>
-                        <input type="email" id="email" required placeholder="nom@association.fr">
-                    </div>
-                    <div class="input-group">
-                        <label for="password">Mot de passe</label>
-                        <input type="password" id="password" required placeholder="••••••••">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Se connecter</button>
-                    <p class="auth-footer">
-                        Nouvelle association ? <a href="#" id="show-register">Créer un compte</a>
-                    </p>
-                </form>
+            <div class="flex gap-2">
+                <button onclick="exportConfig()" class="action-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Exporter JSON
+                </button>
+                <button onclick="document.getElementById('importInput').click()" class="action-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Importer JSON
+                </button>
+                <input type="file" id="importInput" class="hidden" accept=".json" onchange="importConfig(event)">
+            </div>
+        </header>
 
-                <form id="register-form" class="hidden">
-                    <div class="form-section">
-                        <h4>Identifiants de connexion</h4>
+
+
+
+
+        <!-- Global Settings Collapsible -->
+        <details class="glass-panel p-4 bg-slate-900/40">
+            <summary>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                Paramètres Généraux
+            </summary>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-4 pt-4 border-t border-slate-800">
+                <!-- Arène & Mouvement -->
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Arène & Mouvement
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2">
                         <div class="input-group">
-                            <label for="reg-email">Email de l'association (sert d'identifiant)</label>
-                            <input type="email" id="reg-email" required placeholder="contact@asso.fr">
+                            <label class="label-text">Taille (m)</label>
+                            <input type="number" id="g-arena-size" value="20" class="input-field persist"
+                                oninput="saveAndCalc()">
                         </div>
-                        <div class="grid-2">
-                            <div class="input-group"><label for="reg-password">Mot de passe</label><input type="password" id="reg-password" required placeholder="••••••••"></div>
-                            <div class="input-group"><label for="reg-confirm-password">Confirmation</label><input type="password" id="reg-confirm-password" required placeholder="••••••••"></div>
+                        <div class="input-group">
+                            <label class="label-text">Vitesse Dép.</label>
+                            <input type="number" id="g-move-speed" value="2.85" step="0.01" class="input-field persist"
+                                oninput="saveAndCalc()">
                         </div>
-                    </div>
-                    <div class="form-section">
-                        <h4>Informations Administratives</h4>
-                        <div class="input-group"><label for="reg-assoc-name">Nom complet de l'association</label><input type="text" id="reg-assoc-name" required placeholder="Ex: Club Sportif ..."></div>
-                        <div class="grid-2">
-                            <div class="input-group"><label for="reg-rna">Numéro RNA</label><input type="text" id="reg-rna" required placeholder="W000000000"></div>
-                            <div class="input-group"><label for="reg-creation-date">Date de création</label><input type="date" id="reg-creation-date" required></div>
-                        </div>
-                        <div class="grid-2">
-                            <div class="input-group"><label for="reg-siren">Numéro SIREN</label><input type="text" id="reg-siren" required placeholder="9 chiffres"></div>
-                            <div class="input-group"><label for="reg-siret">Numéro SIRET</label><input type="text" id="reg-siret" required placeholder="14 chiffres"></div>
+                        <div class="input-group">
+                            <label class="label-text">Multiplicateur PV</label>
+                            <input type="number" id="g-hp-mult" value="5" class="input-field persist"
+                                oninput="saveAndCalc()">
                         </div>
                     </div>
-                    <div class="form-section">
-                        <h4>Gouvernance &amp; Statuts</h4>
-                        <div class="input-group"><label for="reg-declarant">Nom complet du déclarant</label><input type="text" id="reg-declarant" required placeholder="Prénom NOM"></div>
-                        <div class="input-group"><label for="reg-leaders">Liste des dirigeants (Bureau)</label><textarea id="reg-leaders" rows="3" required placeholder="Président: ..., Trésorier: ..., etc."></textarea></div>
-                        <div class="input-group"><label for="reg-statutes">Texte des statuts (Copie brute)</label><textarea id="reg-statutes" rows="4" required placeholder="Collez ici le texte de vos statuts..."></textarea></div>
+                </div>
+                <!-- Options Simulation -->
+                <div>
+                    <h3 class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-3">Options
+                        Simulation</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="g-use-skills" class="accent-emerald-500 w-4 h-4 persist" checked
+                                onchange="saveAndCalc()">
+                            <span
+                                class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">Inclure
+                                les Compétences</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="g-use-regen" class="accent-emerald-500 w-4 h-4 persist" checked
+                                onchange="saveAndCalc()">
+                            <span
+                                class="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">Inclure
+                                la Régénération de Santé</span>
+                        </label>
                     </div>
-                    <div class="form-section">
-                        <h4>Coordonnées de contact</h4>
-                        <div class="grid-2">
-                            <div class="input-group"><label for="reg-contact-email">Email de contact public</label><input type="email" id="reg-contact-email" required placeholder="asso@exemple.fr"></div>
-                            <div class="input-group"><label for="reg-contact-phone">Numéro de contact</label><input type="tel" id="reg-contact-phone" required placeholder="06 00 00 00 00"></div>
+                </div>
+
+                <!-- Moteur de Combat Automatisé -->
+                <div class="md:col-span-3">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="h-px flex-grow bg-slate-800"></div>
+                        <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Réglages Moteurs
+                            par Type</h3>
+                        <div class="h-px flex-grow bg-slate-800"></div>
+                    </div>
+
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Profil CAC -->
+                        <div class="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+                            <h4 class="text-blue-400 text-[10px] font-black uppercase mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span> Profil Moyen CAC (Guerrier)
+                            </h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div class="input-group">
+                                    <label class="label-text">Windup</label>
+                                    <input type="number" id="g-cac-windup" value="0.6" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                                <div class="input-group">
+                                    <label class="label-text">Recovery</label>
+                                    <input type="number" id="g-cac-recovery" value="0.4" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                                <div class="input-group">
+                                    <label class="label-text">Intervalle</label>
+                                    <input type="number" id="g-cac-fixed" value="0.2" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                                <div class="input-group">
+                                    <label class="label-text">Délai Double</label>
+                                    <input type="number" id="g-cac-double" value="0.25" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profil DISTANCE -->
+                        <div class="p-4 rounded-2xl bg-red-500/5 border border-red-500/10">
+                            <h4 class="text-red-400 text-[10px] font-black uppercase mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-red-500"></span> Profil Moyen DISTANCE (Ranger)
+                            </h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div class="input-group">
+                                    <label class="label-text">Windup</label>
+                                    <input type="number" id="g-dist-windup" value="0.7" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                                <div class="input-group">
+                                    <label class="label-text">Recovery</label>
+                                    <input type="number" id="g-dist-recovery" value="0.4" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                                <div class="input-group">
+                                    <label class="label-text">Intervalle</label>
+                                    <input type="number" id="g-dist-fixed" value="0.2" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                                <div class="input-group">
+                                    <label class="label-text">Délai Double</label>
+                                    <input type="number" id="g-dist-double" value="0.25" step="0.01"
+                                        class="input-field persist" oninput="saveAndCalc()">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Créer le compte association</button>
-                    <p class="auth-footer">Déjà un compte ? <a href="#" id="show-login">Se connecter</a></p>
-                </form>
+                </div>
+                <!-- Portées -->
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Distances de Combat
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="input-group">
+                            <label class="label-text">Portée CAC (m)</label>
+                            <input type="number" id="g-range-cac" value="2" class="input-field persist"
+                                oninput="saveAndCalc()">
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text">Portée Dist (m)</label>
+                            <input type="number" id="g-range-dist" value="11.5" class="input-field persist"
+                                oninput="saveAndCalc()">
+                        </div>
+                    </div>
+                </div>
+                <!-- Sort -->
+                <div>
+                    <h3 class="text-[10px] font-black text-yellow-500 uppercase tracking-widest mb-3">Sort Global</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="input-group">
+                            <label class="label-text">Déclench. (s)</label>
+                            <input type="number" id="g-spell-start" value="3" class="input-field persist"
+                                oninput="saveAndCalc()">
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text">Durée (s)</label>
+                            <input type="number" id="g-spell-dur" value="8" class="input-field persist"
+                                oninput="saveAndCalc()">
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text">Bonus ATK</label>
+                            <div class="flex gap-1"><input type="number" id="g-spell-atk" value="9.78" step="0.01"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select
+                                    id="g-spell-atk-unit" class="input-field persist w-14 p-1 text-center"
+                                    onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text">Bonus HP</label>
+                            <div class="flex gap-1"><input type="number" id="g-spell-hp" value="78.2" step="0.1"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select
+                                    id="g-spell-hp-unit" class="input-field persist w-14 p-1 text-center"
+                                    onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </main>
+        </details>
 
-        <div id="app-content" class="view hidden">
-            <header class="main-header">
-                <div class="header-left">
-                    <span class="badge" id="user-role">Association</span>
-                    <h2 id="org-name">Chargement...</h2>
+        <!-- Visual Arena -->
+        <div class="glass-panel p-6 flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <div class="w-1/3">
+                    <div class="flex justify-between text-xs font-black text-blue-400 mb-1">
+                        <span>JOUEUR 1</span><span id="p1-hp-txt">100%</span>
+                    </div>
+                    <div class="h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
+                        <div id="p1-hp-bar" class="h-full bg-blue-500 w-full transition-all duration-100"></div>
+                    </div>
                 </div>
-                <div class="header-right">
-                    <button id="logout-btn" class="btn btn-icon"><i class="fas fa-sign-out-alt"></i></button>
+                <div id="combat-time"
+                    class="text-xs font-mono font-bold text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
+                    0.0s</div>
+                <div class="w-1/3">
+                    <div class="flex justify-between text-xs font-black text-red-400 mb-1">
+                        <span id="p2-hp-txt">100%</span><span>JOUEUR 2</span>
+                    </div>
+                    <div class="h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700 flex justify-end">
+                        <div id="p2-hp-bar" class="h-full bg-red-500 w-full transition-all duration-100"></div>
+                    </div>
                 </div>
-            </header>
+            </div>
 
-            <div class="main-layout">
-                <aside class="sidebar">
-                    <div class="sidebar-header"><div class="logo-container">CCMVR</div></div>
-                    <nav id="main-nav">
-                        <button class="nav-item active" data-view="dashboard"><i class="fas fa-home"></i> <span>Tableau de bord</span></button>
-                        <button class="nav-item" data-view="application" id="nav-new-app"><i class="fas fa-file-invoice-dollar"></i> <span>Nouvelle demande</span></button>
-                        <button class="nav-item" data-view="history"><i class="fas fa-history"></i> <span>Historique</span></button>
-                        <button class="nav-item" data-view="profile"><i class="fas fa-id-card"></i> <span>Mon Profil</span></button>
-                        <div id="admin-menu" class="hidden">
-                            <hr>
-                            <button class="nav-item" data-view="admin-dashboard"><i class="fas fa-users-cog"></i> <span>Gestion Admin</span></button>
-                            <button class="nav-item" data-view="admin-instruction"><i class="fas fa-clipboard-list"></i> <span>Instruction</span></button>
-                        </div>
-                    </nav>
-                </aside>
-                <main id="content-area"></main>
+            <div id="arena" class="flex-grow">
+                <div id="p1-sprite" class="fighter fighter-1" style="left: 0%;">P1</div>
+                <div id="p2-sprite" class="fighter fighter-2" style="left: calc(100% - 40px);">P2</div>
+            </div>
+
+            <div class="flex justify-center gap-4 mt-6">
+                <button onclick="runVisualCombat()"
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-3 px-6 rounded-xl shadow-lg shadow-indigo-900/50 uppercase text-xs tracking-widest transition-all">
+                    Voir 1 Combat
+                </button>
+                <button onclick="runMassCombat()"
+                    class="bg-slate-700 hover:bg-slate-600 text-white font-black py-3 px-6 rounded-xl shadow-lg uppercase text-xs tracking-widest transition-all border border-slate-600">
+                    Simuler 1000 Combats
+                </button>
             </div>
         </div>
 
-        <div id="notification-container"></div>
-        <div id="global-loader" class="hidden"><div class="spinner"></div></div>
-        <div id="github-version" class="github-version"></div>
+        <!-- Mass Simulation Results -->
+        <div id="mass-results" class="glass-panel p-6 hidden">
+            <div class="grid grid-cols-3 gap-4 text-center items-center">
+                <div>
+                    <div class="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Victoires P1</div>
+                    <div id="res-win-1" class="text-4xl md:text-5xl font-black text-white italic">0%</div>
+                </div>
+                <div class="bg-slate-900/50 rounded-2xl p-4 border border-slate-700">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Durée Moyenne
+                    </div>
+                    <div id="res-time" class="text-2xl font-black text-white">0.0s</div>
+                </div>
+                <div>
+                    <div class="text-xs font-black text-red-400 uppercase tracking-widest mb-1">Victoires P2</div>
+                    <div id="res-win-2" class="text-4xl md:text-5xl font-black text-white italic">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Players Stats -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Player 1 -->
+            <div class="glass-panel p-6 border-t-4 border-t-blue-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-black text-white italic uppercase">Joueur 1</h2>
+                    <div class="input-group w-32">
+                        <label class="label-text">Type Combat</label>
+                        <div class="range-toggle">
+                            <button id="p1-range-cac" onclick="setRange('p1', 'cac')"
+                                class="range-btn active">CAC</button>
+                            <button id="p1-range-dist" onclick="setRange('p1', 'dist')" class="range-btn">DIST</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div class="input-group"><label class="label-text">Chance CC %</label><input type="number"
+                            id="p1-ccc" value="86" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Dégat CC %</label><input type="number"
+                            id="p1-dcc" value="490" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Chance Bloc %</label><input type="number"
+                            id="p1-block" value="10" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Vol de Vie %</label><input type="number"
+                            id="p1-ls" value="19" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Double Chance %</label><input type="number"
+                            id="p1-dc" value="100" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Vit Attq %</label><input type="number"
+                            id="p1-pvit" value="80" class="input-field persist" oninput="saveAndCalc()"></div>
+                </div>
+
+                <!-- Dégâts Section -->
+                <div class="mb-4 p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calcul
+                            Dégâts</span>
+                        <div class="flex gap-1">
+                            <button id="p1-mode-dmg-calc" onclick="setMode('p1', 'dmg', 'calc')"
+                                class="mode-toggle active">Calculé</button>
+                            <button id="p1-mode-dmg-direct" onclick="setMode('p1', 'dmg', 'direct')"
+                                class="mode-toggle">Direct</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="input-group"><label class="label-text">Base</label>
+                            <div class="flex gap-1"><input type="number" id="p1-base" value="19.8" step="0.1"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select id="p1-base-unit"
+                                    class="input-field persist w-14 p-1 text-center" onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                        <div class="input-group"><label class="label-text">% Dégat Tot.</label><input type="number"
+                                id="p1-pdegat" value="220" class="input-field persist" oninput="saveAndCalc()"></div>
+                        <div class="input-group"><label class="label-text">Dégat Direct</label>
+                            <div class="flex gap-1"><input type="number" id="p1-direct-dmg" value="63.36"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select
+                                    id="p1-direct-dmg-unit" class="input-field persist w-14 p-1 text-center"
+                                    onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Compétences & Régénération Section -->
+                <div class="mb-4 p-3 bg-slate-900/50 rounded-xl border border-purple-500/30">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest">Compétences &
+                            Régénération</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-3 border-b border-slate-800 pb-3">
+                        <div class="input-group">
+                            <label class="label-text text-purple-300">Niveau Ascension</label>
+                            <select id="p1-ascension" class="input-field persist text-xs" onchange="saveAndCalc()">
+                                <option value="0">Ascension 0 (x1)</option>
+                                <option value="1">Ascension 1 (+4900%)</option>
+                                <option value="2">Ascension 2 (+254800%)</option>
+                                <option value="3">Ascension 3 (+12754700%)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text text-purple-300">Tier Compétences</label>
+                            <select id="p1-tier" class="input-field persist text-xs" onchange="onTierChange('p1')">
+                                <option value="1">Tier 1 - Arrows/Meat/Shout</option>
+                                <option value="2">Tier 2 - Berserk/Cannon/Shuriken</option>
+                                <option value="3">Tier 3 - Buff/Rain/Thorns</option>
+                                <option value="4">Tier 4 - Bomb/Meteorite/Morale</option>
+                                <option value="5">Tier 5 - Lightning/Stampede/Worm</option>
+                                <option value="6" selected>Tier 6 - Drone/HMorale/Strafe</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text text-purple-300">Placeholder</label>
+                            <div class="text-xs text-slate-500 mt-2">N/A</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-3 border-b border-slate-800 pb-3">
+                        <div class="input-group"><label class="label-text text-purple-300">Dégâts Comp. %</label><input
+                                type="number" id="p1-sdmg" value="0" min="0" max="30" step="0.1"
+                                class="input-field persist" oninput="saveAndCalc()"></div>
+                        <div class="input-group"><label class="label-text text-purple-300">Réduc. CD %</label><input
+                                type="number" id="p1-scdr" value="0" min="0" max="5" step="0.1"
+                                class="input-field persist" oninput="saveAndCalc()"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="input-group"><label class="label-text">Slot 1</label><select id="p1-skill1-id"
+                                class="input-field persist text-xs" onchange="saveAndCalc()" disabled></select></div>
+                        <div class="input-group"><label class="label-text">Slot 2</label><select id="p1-skill2-id"
+                                class="input-field persist text-xs" onchange="saveAndCalc()" disabled></select></div>
+                        <div class="input-group"><label class="label-text">Slot 3</label><select id="p1-skill3-id"
+                                class="input-field persist text-xs" onchange="saveAndCalc()" disabled></select></div>
+                    </div>
+                </div>
+
+
+
+                <!-- Santé Section -->
+                <div class="mb-6 p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calcul
+                            Santé</span>
+                        <div class="flex gap-1">
+                            <button id="p1-mode-hp-calc" onclick="setMode('p1', 'hp', 'calc')"
+                                class="mode-toggle active">Calculé</button>
+                            <button id="p1-mode-hp-direct" onclick="setMode('p1', 'hp', 'direct')"
+                                class="mode-toggle">Direct</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div class="input-group"><label class="label-text">PV Base</label>
+                            <div class="flex gap-1"><input type="number" id="p1-hp" value="1000"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select id="p1-hp-unit"
+                                    class="input-field persist w-14 p-1 text-center" onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                        <div class="input-group"><label class="label-text">% PV</label><input type="number" id="p1-php"
+                                value="18.3" step="0.1" class="input-field persist" oninput="saveAndCalc()"></div>
+                        <div class="input-group"><label class="label-text">PV Totaux</label>
+                            <div class="flex gap-1"><input type="number" id="p1-direct-hp" value="1183"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select
+                                    id="p1-direct-hp-unit" class="input-field persist w-14 p-1 text-center"
+                                    onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text text-green-400">Regen Santé %</label>
+                            <input type="number" id="p1-regen" value="0" min="0" max="72" step="0.1"
+                                class="input-field persist" oninput="saveAndCalc()">
+                        </div>
+                    </div>
+                </div>
+
+                <h3
+                    class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 border-b border-slate-800 pb-1">
+                    Statistiques Calculées</h3>
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="stat-box"><span id="p1-c-atk" class="stat-val text-white">-</span><span
+                            class="stat-name">Attaque / s</span></div>
+                    <div class="stat-box"><span id="p1-c-dbase" class="stat-val text-white">-</span><span
+                            class="stat-name">Dégat Base</span></div>
+                    <div class="stat-box"><span id="p1-c-dcc" class="stat-val text-yellow-400">-</span><span
+                            class="stat-name">Dégat CC</span></div>
+                    <div class="stat-box"><span id="p1-c-dtot" class="stat-val text-orange-400">-</span><span
+                            class="stat-name">Dégat / Coup</span></div>
+                    <div class="stat-box"><span id="p1-c-dps-b" class="stat-val text-slate-300">-</span><span
+                            class="stat-name">DPS Base</span></div>
+                    <div class="stat-box"><span id="p1-c-dps-c" class="stat-val text-yellow-300">-</span><span
+                            class="stat-name">DPS CC</span></div>
+                    <div class="stat-box"><span id="p1-c-dps-t" class="stat-val text-red-400">-</span><span
+                            class="stat-name">DPS Total</span></div>
+                    <div class="stat-box"><span id="p1-c-surv" class="stat-val text-green-400">-</span><span
+                            class="stat-name">Survie / s</span></div>
+                </div>
+            </div>
+
+            <!-- Player 2 -->
+            <div class="glass-panel p-6 border-t-4 border-t-red-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-black text-white italic uppercase">Joueur 2</h2>
+                    <div class="input-group w-32">
+                        <label class="label-text">Type Combat</label>
+                        <div class="range-toggle">
+                            <button id="p2-range-cac" onclick="setRange('p2', 'cac')" class="range-btn">CAC</button>
+                            <button id="p2-range-dist" onclick="setRange('p2', 'dist')"
+                                class="range-btn active">DIST</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <div class="input-group"><label class="label-text">Chance CC %</label><input type="number"
+                            id="p2-ccc" value="50" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Dégat CC %</label><input type="number"
+                            id="p2-dcc" value="400" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Chance Bloc %</label><input type="number"
+                            id="p2-block" value="15" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Vol de Vie %</label><input type="number"
+                            id="p2-ls" value="10" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Double Chance %</label><input type="number"
+                            id="p2-dc" value="50" class="input-field persist" oninput="saveAndCalc()"></div>
+                    <div class="input-group"><label class="label-text">Vit Attq %</label><input type="number"
+                            id="p2-pvit" value="80" class="input-field persist" oninput="saveAndCalc()"></div>
+                </div>
+
+                <!-- Dégâts Section -->
+                <div class="mb-4 p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calcul
+                            Dégâts</span>
+                        <div class="flex gap-1">
+                            <button id="p2-mode-dmg-calc" onclick="setMode('p2', 'dmg', 'calc')"
+                                class="mode-toggle active">Calculé</button>
+                            <button id="p2-mode-dmg-direct" onclick="setMode('p2', 'dmg', 'direct')"
+                                class="mode-toggle">Direct</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="input-group"><label class="label-text">Base</label>
+                            <div class="flex gap-1"><input type="number" id="p2-base" value="19.8" step="0.1"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select id="p2-base-unit"
+                                    class="input-field persist w-14 p-1 text-center" onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                        <div class="input-group"><label class="label-text">% Dégat Tot.</label><input type="number"
+                                id="p2-pdegat" value="200" class="input-field persist" oninput="saveAndCalc()"></div>
+                        <div class="input-group"><label class="label-text">Dégat Direct</label>
+                            <div class="flex gap-1"><input type="number" id="p2-direct-dmg" value="59.4"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select
+                                    id="p2-direct-dmg-unit" class="input-field persist w-14 p-1 text-center"
+                                    onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compétences & Régénération Section P2 -->
+                <div class="mb-4 p-3 bg-slate-900/50 rounded-xl border border-purple-500/30">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest">Compétences &
+                            Régénération</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-3 border-b border-slate-800 pb-3">
+                        <div class="input-group">
+                            <label class="label-text text-purple-300">Niveau Ascension</label>
+                            <select id="p2-ascension" class="input-field persist text-xs" onchange="saveAndCalc()">
+                                <option value="0">Ascension 0 (x1)</option>
+                                <option value="1">Ascension 1 (+4900%)</option>
+                                <option value="2">Ascension 2 (+254800%)</option>
+                                <option value="3">Ascension 3 (+12754700%)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text text-purple-300">Tier Compétences</label>
+                            <select id="p2-tier" class="input-field persist text-xs" onchange="onTierChange('p2')">
+                                <option value="1">Tier 1 - Arrows/Meat/Shout</option>
+                                <option value="2">Tier 2 - Berserk/Cannon/Shuriken</option>
+                                <option value="3">Tier 3 - Buff/Rain/Thorns</option>
+                                <option value="4">Tier 4 - Bomb/Meteorite/Morale</option>
+                                <option value="5">Tier 5 - Lightning/Stampede/Worm</option>
+                                <option value="6" selected>Tier 6 - Drone/HMorale/Strafe</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text text-purple-300">Placeholder</label>
+                            <div class="text-xs text-slate-500 mt-2">N/A</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-3 border-b border-slate-800 pb-3">
+                        <div class="input-group"><label class="label-text text-purple-300">Dégâts Comp. %</label><input
+                                type="number" id="p2-sdmg" value="0" min="0" max="30" step="0.1"
+                                class="input-field persist" oninput="saveAndCalc()"></div>
+                        <div class="input-group"><label class="label-text text-purple-300">Réduc. CD %</label><input
+                                type="number" id="p2-scdr" value="0" min="0" max="5" step="0.1"
+                                class="input-field persist" oninput="saveAndCalc()"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="input-group"><label class="label-text">Slot 1</label><select id="p2-skill1-id"
+                                class="input-field persist text-xs" onchange="saveAndCalc()" disabled></select></div>
+                        <div class="input-group"><label class="label-text">Slot 2</label><select id="p2-skill2-id"
+                                class="input-field persist text-xs" onchange="saveAndCalc()" disabled></select></div>
+                        <div class="input-group"><label class="label-text">Slot 3</label><select id="p2-skill3-id"
+                                class="input-field persist text-xs" onchange="saveAndCalc()" disabled></select></div>
+                    </div>
+                </div>
+
+
+                <div class="mb-6 p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calcul
+                            Santé</span>
+                        <div class="flex gap-1">
+                            <button id="p2-mode-hp-calc" onclick="setMode('p2', 'hp', 'calc')"
+                                class="mode-toggle active">Calculé</button>
+                            <button id="p2-mode-hp-direct" onclick="setMode('p2', 'hp', 'direct')"
+                                class="mode-toggle">Direct</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div class="input-group"><label class="label-text">PV Base</label>
+                            <div class="flex gap-1"><input type="number" id="p2-hp" value="1000"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select id="p2-hp-unit"
+                                    class="input-field persist w-14 p-1 text-center" onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                        <div class="input-group"><label class="label-text">% PV</label><input type="number" id="p2-php"
+                                value="0" step="0.1" class="input-field persist" oninput="saveAndCalc()"></div>
+                        <div class="input-group"><label class="label-text">PV Totaux</label>
+                            <div class="flex gap-1"><input type="number" id="p2-direct-hp" value="1000"
+                                    class="input-field persist w-full" oninput="saveAndCalc()"><select
+                                    id="p2-direct-hp-unit" class="input-field persist w-14 p-1 text-center"
+                                    onchange="saveAndCalc()">
+                                    <option value="1"> </option>
+                                    <option value="1000">K</option>
+                                    <option value="1000000">M</option>
+                                    <option value="1000000000">B</option>
+                                </select></div>
+                        </div>
+                        <div class="input-group">
+                            <label class="label-text text-green-400">Regen Santé %</label>
+                            <input type="number" id="p2-regen" value="0" min="0" max="72" step="0.1"
+                                class="input-field persist" oninput="saveAndCalc()">
+                        </div>
+                    </div>
+                </div>
+
+                <h3
+                    class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 border-b border-slate-800 pb-1">
+                    Statistiques Calculées</h3>
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="stat-box"><span id="p2-c-atk" class="stat-val text-white">-</span><span
+                            class="stat-name">Attaque / s</span></div>
+                    <div class="stat-box"><span id="p2-c-dbase" class="stat-val text-white">-</span><span
+                            class="stat-name">Dégat Base</span></div>
+                    <div class="stat-box"><span id="p2-c-dcc" class="stat-val text-yellow-400">-</span><span
+                            class="stat-name">Dégat CC</span></div>
+                    <div class="stat-box"><span id="p2-c-dtot" class="stat-val text-orange-400">-</span><span
+                            class="stat-name">Dégat / Coup</span></div>
+                    <div class="stat-box"><span id="p2-c-dps-b" class="stat-val text-slate-300">-</span><span
+                            class="stat-name">DPS Base</span></div>
+                    <div class="stat-box"><span id="p2-c-dps-c" class="stat-val text-yellow-300">-</span><span
+                            class="stat-name">DPS CC</span></div>
+                    <div class="stat-box"><span id="p2-c-dps-t" class="stat-val text-red-400">-</span><span
+                            class="stat-name">DPS Total</span></div>
+                    <div class="stat-box"><span id="p2-c-surv" class="stat-val text-green-400">-</span><span
+                            class="stat-name">Survie / s</span></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Section Benchmark (Joueur 1 uniquement) -->
+        <div id="benchmark-section" class="glass-panel p-6 mt-8 border-l-4 border-l-indigo-500">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-black italic text-indigo-400 tracking-tighter">BENCHMARK OPTIMISEUR (J1)
+                    </h2>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Trouve la
+                        répartition parfaite de vos 24 jets</p>
+                    <p id="bench-status"
+                        class="text-[9px] font-bold text-indigo-300/50 uppercase tracking-[0.2em] mt-2 italic">En
+                        attente...</p>
+                    <div class="w-full h-1 bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div id="bench-cycle-progress" class="h-full bg-indigo-500 transition-all duration-300"
+                            style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <div class="input-group w-24">
+                        <label class="label-text">Puissance Jets %</label>
+                        <input type="number" id="bench-roll-power" value="100" class="input-field persist"
+                            oninput="saveAndCalc()">
+                    </div>
+                    <button id="bench-btn" onclick="toggleBenchmark()"
+                        class="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2">
+                        <span id="bench-btn-icon" class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                        <span id="bench-btn-text">Lancer le Benchmark</span>
+                    </button>
+                    <button id="apply-bench-btn" onclick="applyBestBuild()"
+                        class="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-xs uppercase transition-all hidden">
+                        Appliquer le Meilleur Build
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Build en cours -->
+                <div class="p-4 rounded-2xl bg-slate-900/50 border border-slate-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Test en
+                            cours</span>
+                        <span id="bench-count" class="text-[10px] font-mono text-indigo-400">Builds testés : 0</span>
+                    </div>
+                    <div id="bench-current-stats" class="grid grid-cols-4 gap-2 mb-4 opacity-50">
+                        <!-- Stats injectées par JS -->
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex-grow h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="bench-current-win-bar" class="h-full bg-indigo-500 transition-all duration-300"
+                                style="width: 0%"></div>
+                        </div>
+                        <span id="bench-current-win" class="text-xs font-black text-slate-300 w-12 text-right">0%</span>
+                    </div>
+                </div>
+
+                <!-- Meilleur Build -->
+                <div class="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 ring-1 ring-indigo-500/20">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">🏆 Meilleur Build
+                            Trouvé</span>
+                        <span id="bench-best-sims" class="text-[10px] font-mono text-indigo-400">Précision : 2000
+                            combats</span>
+                    </div>
+                    <div id="bench-best-stats" class="grid grid-cols-4 gap-2 mb-4">
+                        <div
+                            class="text-center py-4 col-span-4 text-slate-600 text-[10px] uppercase font-black tracking-widest">
+                            En attente du premier test...</div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="flex-grow h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div id="bench-best-win-bar" class="h-full bg-green-500 transition-all duration-500"
+                                style="width: 0%"></div>
+                        </div>
+                        <span id="bench-best-win" class="text-lg font-black text-green-400 w-20 text-right">0.0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hall of Fame -->
+            <div class="mt-6 pt-6 border-t border-slate-800">
+                <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Top 5 des alternatives
+                    prometteuses</h3>
+                <div id="bench-hof" class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                    <!-- Top 5 injecté ici -->
+                    <div class="text-[10px] text-slate-700 italic">En attente de builds...</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <script src="js/utils.js?v=2.0"></script>
-    <script src="js/config.js?v=2.0"></script>
-    <script src="js/supabase-client.js?v=2.0"></script>
-    <script src="js/logo-data.js?v=2.0"></script>
-    <script src="js/auth.js?v=2.0"></script>
-    <script src="js/ui.js?v=2.0"></script>
-    <script src="js/form.js?v=2.0"></script>
-    <script src="js/admin.js?v=2.0"></script>
-    <script src="js/pdf.js?v=2.0"></script>
-    <script src="js/main.js?v=2.0"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>
